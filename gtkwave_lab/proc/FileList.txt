@@ -1,0 +1,12 @@
+./Wrapper.v
+./processor.v
+./ROM.v
+./regfile/regfile_tb.v
+./regfile/register.v
+./regfile/dffe_ref.v
+./regfile/regfile.v
+./regfile/decoder.v
+./alu/adder.v
+./alu/alu.v
+./alu/alu_tb.v
+../../gtkwave_lab_test_files/Wrapper_tb.v
