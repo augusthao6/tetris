@@ -16,7 +16,7 @@ module alu(
 
     wire [7:0] add_result, sub_result;
 
-    adder add(.data_operandA(data_operandA), .data_operandB(data_operandB), .data_result(add_result), .carry_in(1'b1)); 
+    adder add(.data_operandA(data_operandA), .data_operandB(data_operandB), .data_result(add_result), .carry_in(1'b0)); 
     adder sub(.data_operandA(data_operandA), .data_operandB(~data_operandB), .data_result(sub_result), .carry_in(1'b1)); 
 
     assign data_result = (ctrl_ALUopcode == 0) ? add_result : sub_result; 

@@ -66,7 +66,9 @@ module processor(
     assign immediate = dxinsn_out[7:0];
 
     // Use ALU to compute result
-    alu ALU(.data_operandA(dxa_out), .data_operandB(immediate), .ctrl_ALUopcode(1'b0), .data_result(alu_out)); 
+    wire alu_opcode;
+    assign alu_opcode = dxinsn_out[14];
+    alu ALU(.data_operandA(dxa_out), .data_operandB(immediate), .ctrl_ALUopcode(alu_opcode), .data_result(alu_out)); 
 
     // Latch ALU result
     wire [7:0] xwo_out;
@@ -83,7 +85,7 @@ module processor(
     assign data_writeReg = xwo_out;
 
     // Set write enable
-    assign ctrl_writeEnable = 1'b0;
+    assign ctrl_writeEnable = 1'b1;
 	
 	/* END CODE */
 
