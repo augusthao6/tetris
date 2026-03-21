@@ -66,34 +66,55 @@ module processor(
     wire[31:0] pc_in, pc_out, pc_plus1;
     cla32 PC_adder(.A(pc_out), .B(32'd1), .Cin(1'b0), .S(pc_plus1), .Cout()); //word oriented +1
     register32 PC_reg(.q(pc_out), .d(pc_in), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    assign pc_in = pc_plus1; //increment PC by 1 each cycle
 
     //Insn Mem
     assign address_imem = pc_out;
 
     //F/D
     wire [31:0] fd_insn, fd_pc_plus1;
-    register32 fd_insn_reg(.q(fd_insn), .d(q_imem), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    register32 fd_pc_plus1_reg(.q(fd_pc_plus1), .d(pc_plus1), .clk(~clock), .input_enable(1'b1), .clr(reset));
+    wire [31:0] fd_insn_final, fd_pc_plus1_in;
+    wire stall_multdiv;
+
+    assign fd_insn_final = (reset || flush_pipeline) ? 32'b0 : q_imem;
+    assign fd_pc_plus1_in = flush_pipeline ? 32'b0 : pc_plus1;
+
+    register32 fd_insn_reg(.q(fd_insn), .d(fd_insn_final), .clk(~clock), .input_enable(!stall_multdiv), .clr(1'b0));
+    register32 fd_pc_plus1_reg(.q(fd_pc_plus1), .d(fd_pc_plus1_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
 
     //Decode
     wire[4:0] fd_opcode, fd_rs, fd_rt, fd_rd;
     assign fd_opcode = fd_insn[31:27];
+    wire fd_bex, fd_bne, fd_blt;
+    assign fd_bex = (fd_opcode == 5'b10110);
+    assign fd_bne = (fd_opcode == 5'b00010);
+    assign fd_blt = (fd_opcode == 5'b00110);
+    wire fd_jr;
+    assign fd_jr = (fd_opcode == 5'b00100);
+    wire fd_sw, fd_lw;
+    assign fd_sw = (fd_opcode == 5'b00111);
+    assign fd_lw = (fd_opcode == 5'b01000);
     assign fd_rd = fd_insn[26:22];
     assign fd_rs = fd_insn[21:17];
     assign fd_rt = fd_insn[16:12];
-    assign ctrl_readRegA = fd_rs;
-    assign ctrl_readRegB = fd_rt;
+    assign ctrl_readRegA = fd_bex ? 5'd30 : (fd_jr || fd_bne || fd_blt) ? fd_rd : fd_rs;
+    assign ctrl_readRegB = fd_sw ? fd_rd : (fd_bne || fd_blt) ? fd_rs : fd_rt;
 
     //RegFile - in Wrapper.v
 
     //D/X
-    wire [31:0] dx_insn, dx_pc_plus1, dx_readDataA, dx_readDataB;
-    register32 dx_insn_reg(.q(dx_insn), .d(fd_insn), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    register32 dx_pc_plus1_reg(.q(dx_pc_plus1), .d(fd_pc_plus1), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    register32 dx_readDataA_reg(.q(dx_readDataA), .d(data_readRegA), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    register32 dx_readDataB_reg(.q(dx_readDataB), .d(data_readRegB), .clk(~clock), .input_enable(1'b1), .clr(reset));
+    wire [31:0] dx_insn, dx_pc_plus1, dx_readDataA, dx_readDataB, dx_readDataA_in, dx_readDataB_in;
+    wire [31:0] dx_insn_in, dx_pc_plus1_in;
 
+    assign dx_insn_in = flush_pipeline ? 32'b0 : fd_insn;
+    assign dx_pc_plus1_in = flush_pipeline ? 32'b0 : fd_pc_plus1;
+    assign dx_readDataA_in = flush_pipeline ? 32'b0 : data_readRegA;
+    assign dx_readDataB_in = flush_pipeline ? 32'b0 : data_readRegB;
+
+    register32 dx_insn_reg(.q(dx_insn), .d(dx_insn_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
+    register32 dx_pc_plus1_reg(.q(dx_pc_plus1), .d(dx_pc_plus1_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
+    register32 dx_readDataA_reg(.q(dx_readDataA), .d(dx_readDataA_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
+    register32 dx_readDataB_reg(.q(dx_readDataB), .d(dx_readDataB_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
+    
     //Execute
     wire [4:0] dx_opcode, dx_rs, dx_rt, dx_rd, dx_shamt, dx_aluop;
     assign dx_opcode = dx_insn[31:27];
@@ -105,11 +126,23 @@ module processor(
 
     wire [31:0] dx_sign_ext_imm;
     assign dx_sign_ext_imm = {{15{dx_insn[16]}}, dx_insn[16:0]};
+    wire [26:0] dx_target;
+    assign dx_target = dx_insn[26:0]; //j/jal/bex
+    wire [31:0] dx_br_offset = {{10{dx_insn[21]}}, dx_insn[21:0]};
 
     //opcodes
-    wire dx_rtype, dx_addi;
+    wire dx_rtype, dx_addi, dx_sw, dx_lw, dx_j, dx_jal, dx_jr, dx_bne, dx_blt, dx_bex, dx_setx;
     assign dx_rtype = (dx_opcode == 5'b00000);
     assign dx_addi = (dx_opcode == 5'b00101);
+    assign dx_sw = (dx_opcode == 5'b00111);
+    assign dx_lw = (dx_opcode == 5'b01000);
+    assign dx_j = (dx_opcode == 5'b00001);
+    assign dx_jal = (dx_opcode == 5'b00011);
+    assign dx_jr = (dx_opcode == 5'b00100);
+    assign dx_bne = (dx_opcode == 5'b00010);
+    assign dx_blt = (dx_opcode == 5'b00110);
+    assign dx_bex = (dx_opcode == 5'b10110);
+    assign dx_setx = (dx_opcode == 5'b10101);
 
     wire add, sub, and32, or32, sll, sra, mul, div;
     assign add = dx_rtype && (dx_aluop == 5'b00000);
@@ -120,74 +153,150 @@ module processor(
     assign sra = dx_rtype && (dx_aluop == 5'b00101);
     assign mul = dx_rtype && (dx_aluop == 5'b00110);
     assign div = dx_rtype && (dx_aluop == 5'b00111);
+    wire dx_multdiv;
+    assign dx_multdiv = mul || div;
 
     //ALU
-    wire dx_regwrite;
-    assign dx_regwrite = dx_rtype || dx_addi;
-    wire [4:0] alu_opcode = dx_rtype ? dx_aluop : 5'b00000; //add for addi
-    wire [31:0] alu_inB = dx_addi ? dx_sign_ext_imm: dx_readDataB; //use sign extended imm for addi, B otherwise
+    wire [4:0] alu_opcode;
+    assign alu_opcode = dx_rtype ? dx_aluop : (dx_bne || dx_blt) ? 5'b00001 : //subtract for comparison
+                        5'b00000; //add for addi
+    wire [31:0] alu_inB;
+    assign alu_inB = (dx_addi || dx_sw || dx_lw) ? dx_sign_ext_imm: dx_readDataB; //use sign extended imm for addi, B otherwise
 
     wire [31:0] alu_out;
     wire alu_ne, alu_lt, alu_overflow;
 
-    alu ALU(.data_operandA (dx_readDataA), .data_operandB (alu_inB), .ctrl_ALUopcode(alu_opcode), .ctrl_shiftamt(dx_shamt), .data_result(alu_out), .isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_overflow));
+    alu ALU(.data_operandA(dx_readDataA), .data_operandB(alu_inB), .ctrl_ALUopcode(alu_opcode), .ctrl_shiftamt(dx_shamt), .data_result(alu_out), .isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_overflow));
     
+    //multdiv
+    wire [31:0] multdiv_out;
+    wire multdiv_exception, multdiv_ready;
+    wire multdiv_mult, multdiv_div;
+    assign multdiv_mult = mul && !doing_multdiv;
+    assign multdiv_div = div && !doing_multdiv;
+    multdiv MULTDIV(.data_operandA(dx_readDataA), .data_operandB(dx_readDataB), .ctrl_MULT(multdiv_mult), .ctrl_DIV(multdiv_div), .clock(clock), .data_result(multdiv_out), .data_exception(multdiv_exception), .data_resultRDY(multdiv_ready));
+
+    //need to stall for multdiv
+    wire doing_multdiv, doing_multdiv_next;
+    assign doing_multdiv_next = (dx_multdiv && !doing_multdiv) ? 1'b1 : // start
+                                (doing_multdiv && multdiv_ready) ? 1'b0 : // done (one cycle after ready)
+                                doing_multdiv;
+    dffe_ref doing_multdiv_ff(.q(doing_multdiv), .d(doing_multdiv_next), .clk(~clock), .en(1'b1), .clr(reset));
+    wire [4:0] multdiv_dest;
+    genvar k;
+    generate
+        for (k = 0; k < 5; k = k + 1) begin : multdiv_dest_loop
+            dffe_ref multdiv_dest_ff(.q(multdiv_dest[k]), .d(dx_rd[k]), .clk(~clock), .en(dx_multdiv && !doing_multdiv), .clr(reset));
+        end
+    endgenerate
+    assign stall_multdiv = (doing_multdiv && !multdiv_ready) || (dx_multdiv && !doing_multdiv);
+
+    //branch/jump
+    wire do_bne, do_blt, do_bex;
+    assign do_bne = dx_bne && alu_ne;
+    assign do_blt = dx_blt && alu_lt;
+    assign do_bex = dx_bex && (dx_readDataA != 32'b0);
+    wire branch_taken, jump_taken;
+    assign branch_taken = do_bne || do_blt || do_bex;
+    assign jump_taken = dx_j || dx_jal || dx_jr;
+    wire flush_pipeline;
+    assign flush_pipeline = branch_taken || jump_taken;
+
+    //branch target: PC+1 + offset
+    wire [31:0] branch_target;
+    cla32 branch_adder(.A(dx_pc_plus1), .B(dx_br_offset), .Cin(1'b0), .S(branch_target), .Cout());
+
+    //PC mux
+    assign pc_in = stall_multdiv ? pc_out : 
+                   dx_jr ? dx_readDataA : 
+                   do_bex ? {5'b0, dx_target} :
+                   branch_taken ? branch_target :
+                   (dx_j || dx_jal) ? {5'b0, dx_target} : 
+                   pc_plus1;
+    //overflow
+    wire overflow, overflow_add, overflow_addi, overflow_sub, overflow_mul, overflow_div;
+    assign overflow_add = add & alu_overflow;
+    assign overflow_addi = dx_addi && alu_overflow;
+    assign overflow_sub = sub && alu_overflow;
+    assign overflow_mul = doing_multdiv && mul && multdiv_exception && multdiv_ready;
+    assign overflow_div = doing_multdiv && div && multdiv_exception && multdiv_ready;
+    assign overflow = overflow_add || overflow_addi || overflow_sub || overflow_mul || overflow_div;
+
+    wire [31:0] rstatus_val;
+    assign rstatus_val = overflow_add ? 32'd1 : overflow_addi ? 32'd2 : overflow_sub  ? 32'd3 : overflow_mul  ? 32'd4 : overflow_div  ? 32'd5 : 32'd0;
+
+    //determine write result and register destination
     wire [31:0] dx_writedata;
     wire [4:0] dx_writereg;
-    assign dx_writedata = alu_out;
-    assign dx_writereg = dx_rd; //rt for addi, rd for R-type
+    assign dx_writedata = dx_setx ? {5'b0, dx_target} : overflow ? rstatus_val : dx_jal ? dx_pc_plus1 : (doing_multdiv && multdiv_ready) ? multdiv_out : alu_out;
+    assign dx_writereg = dx_setx ? 5'd30 :
+                     overflow ? 5'd30 :
+                     dx_jal ? 5'd31 :
+                     (doing_multdiv && multdiv_ready) ? multdiv_dest :
+                     (dx_rtype || dx_addi || dx_lw) ? dx_rd :
+                     5'd0;
+    wire dx_regwrite;
+    assign dx_regwrite = dx_rtype || dx_addi || dx_lw || dx_jal || dx_setx || (doing_multdiv && multdiv_ready);
 
-    //overflow?
-
-    //X/M - not needed now, not doing load or store word
+    //X/M
     wire [31:0] xm_alu_out, xm_storedata;
     wire [4:0] xm_rd;
-    wire xm_regwrite, xm_isSW_q, xm_isLW_q;
+    wire xm_regwrite, xm_sw, xm_lw;
+    wire [31:0] xm_alu_in, xm_store_in;
+    assign xm_alu_in = dx_writedata;
+    assign xm_store_in = dx_readDataB;
+    wire [4:0] xm_rd_in;
+    assign xm_rd_in = dx_writereg;
+    wire xm_rw_in, xm_sw_in, xm_lw_in;
+    assign xm_rw_in = dx_regwrite;
+    assign xm_sw_in = dx_sw;
+    assign xm_lw_in = dx_lw;
 
-    register32 xm_result(.q(xm_alu_out), .d(dx_writedata), .clk(~clock), .input_enable(1'b1), .clr(reset));
-    register32 xm_store(.q(xm_storedata), .d(alu_inB), .clk(~clock), .input_enable(1'b1), .clr(reset));
+    register32 xm_result(.q(xm_alu_out), .d(xm_alu_in), .clk(~clock), .input_enable(1'b1), .clr(reset));
+    register32 xm_store(.q(xm_storedata), .d(xm_store_in), .clk(~clock), .input_enable(1'b1), .clr(reset));
 
     //5-bit write register
-    genvar xm_rd_i;
+    genvar i;
     generate
-        for (xm_rd_i = 0; xm_rd_i < 5; xm_rd_i = xm_rd_i + 1) begin : XM_RD
-            dffe_ref xm_rd_ff(.q(xm_rd[xm_rd_i]), .d(dx_writereg[xm_rd_i]), .clk(~clock), .en(1'b1), .clr(reset));
+        for (i = 0; i < 5; i = i + 1) begin : xm_rd_loop
+            dffe_ref xm_rd_ff(.q(xm_rd[i]), .d(xm_rd_in[i]), .clk(~clock), .en(1'b1), .clr(reset));
         end
     endgenerate
 
     //1-bit control signals
-    dffe_ref xm_rw_ff(.q(xm_regwrite), .d(dx_regwrite), .clk(~clock), .en(1'b1), .clr(reset));
-    dffe_ref xm_sw_ff(.q(xm_isSW_q), .d(1'b0), .clk(~clock), .en(1'b1), .clr(reset));
-    dffe_ref xm_lw_ff(.q(xm_isLW_q), .d(1'b0), .clk(~clock), .en(1'b1), .clr(reset));
+    dffe_ref xm_rw_ff(.q(xm_regwrite), .d(xm_rw_in), .clk(~clock), .en(1'b1), .clr(reset));
+    dffe_ref xm_sw_ff(.q(xm_sw), .d(xm_sw_in), .clk(~clock), .en(1'b1), .clr(reset));
+    dffe_ref xm_lw_ff(.q(xm_lw), .d(xm_lw_in), .clk(~clock), .en(1'b1), .clr(reset));
 
     //Data Mem
     assign address_dmem = xm_alu_out;
     assign data = xm_storedata;
-    assign wren = 1'b0;
+    assign wren = xm_sw;
 
-    //M/W - same thing not implementing load or store, pass along ALU result and control signals for writing to regfile
+    //M/W
     wire [31:0] mw_alu_out;
     wire [4:0] mw_rd;
-    wire mw_regwrite, mw_isLW_q;
+    wire mw_regwrite, mw_lw;
 
     register32 mw_result(.q(mw_alu_out), .d(xm_alu_out), .clk(~clock), .input_enable(1'b1), .clr(reset));
     //5 bit write register
-    genvar mw_rd_i;
+    genvar j;
     generate
-        for (mw_rd_i = 0; mw_rd_i < 5; mw_rd_i = mw_rd_i + 1) begin : MW_RD
-            dffe_ref mw_rd_ff(.q(mw_rd[mw_rd_i]), .d(xm_rd[mw_rd_i]), .clk(~clock), .en(1'b1), .clr(reset));
+        for (j = 0; j < 5; j = j + 1) begin : mw_rd_loop
+            dffe_ref mw_rd_ff(.q(mw_rd[j]), .d(xm_rd[j]), .clk(~clock), .en(1'b1), .clr(reset));
         end
     endgenerate
 
     //1-bit control signals
     dffe_ref mw_rw_ff(.q(mw_regwrite), .d(xm_regwrite), .clk(~clock), .en(1'b1), .clr(reset));
-    dffe_ref mw_lw_ff(.q(mw_isLW_q), .d(xm_isLW_q), .clk(~clock), .en(1'b1), .clr(reset));
+    dffe_ref mw_lw_ff(.q(mw_lw), .d(xm_lw), .clk(~clock), .en(1'b1), .clr(reset));
 
     //Writeback
-    wire [31:0] mw_writedata = mw_isLW_q ? q_dmem : mw_alu_out;
+    wire [31:0] mw_writedata;
+    assign mw_writedata = mw_lw ? q_dmem : mw_alu_out;
     assign data_writeReg = mw_writedata;
     assign ctrl_writeReg = mw_rd;
-    assign ctrl_writeEnable = mw_regwrite;
+    assign ctrl_writeEnable = mw_regwrite && (mw_rd != 5'd0);
 	/* END CODE */
 
 endmodule
