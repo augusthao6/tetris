@@ -73,16 +73,17 @@ module processor(
     //F/D
     wire [31:0] fd_insn, fd_pc_plus1;
     wire [31:0] fd_insn_final, fd_pc_plus1_in;
-    wire stall_multdiv;
+    wire stall_multdiv, stall_lw, stall;
+    wire [31:0] bypass_readDataA, bypass_readDataB;
 
     assign fd_insn_final = (reset || flush_pipeline) ? 32'b0 : q_imem;
     assign fd_pc_plus1_in = flush_pipeline ? 32'b0 : pc_plus1;
 
-    register32 fd_insn_reg(.q(fd_insn), .d(fd_insn_final), .clk(~clock), .input_enable(!stall_multdiv), .clr(1'b0));
-    register32 fd_pc_plus1_reg(.q(fd_pc_plus1), .d(fd_pc_plus1_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
+    register32 fd_insn_reg(.q(fd_insn), .d(fd_insn_final), .clk(~clock), .input_enable(!stall), .clr(1'b0));
+    register32 fd_pc_plus1_reg(.q(fd_pc_plus1), .d(fd_pc_plus1_in), .clk(~clock), .input_enable(!stall), .clr(reset));
 
     //Decode
-    wire[4:0] fd_opcode, fd_rs, fd_rt, fd_rd;
+    wire [4:0] fd_opcode, fd_rs, fd_rt, fd_rd;
     assign fd_opcode = fd_insn[31:27];
     wire fd_bex, fd_bne, fd_blt;
     assign fd_bex = (fd_opcode == 5'b10110);
@@ -105,10 +106,10 @@ module processor(
     wire [31:0] dx_insn, dx_pc_plus1, dx_readDataA, dx_readDataB, dx_readDataA_in, dx_readDataB_in;
     wire [31:0] dx_insn_in, dx_pc_plus1_in;
 
-    assign dx_insn_in = flush_pipeline ? 32'b0 : fd_insn;
-    assign dx_pc_plus1_in = flush_pipeline ? 32'b0 : fd_pc_plus1;
-    assign dx_readDataA_in = flush_pipeline ? 32'b0 : data_readRegA;
-    assign dx_readDataB_in = flush_pipeline ? 32'b0 : data_readRegB;
+    assign dx_insn_in = stall_lw ? 32'b0 : flush_pipeline ? 32'b0 : fd_insn;
+    assign dx_pc_plus1_in = stall_lw ? 32'b0 : flush_pipeline ? 32'b0 : fd_pc_plus1;
+    assign dx_readDataA_in = stall_lw ? 32'b0 : flush_pipeline ? 32'b0 : data_readRegA;
+    assign dx_readDataB_in = stall_lw ? 32'b0 : flush_pipeline ? 32'b0 : data_readRegB;
 
     register32 dx_insn_reg(.q(dx_insn), .d(dx_insn_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
     register32 dx_pc_plus1_reg(.q(dx_pc_plus1), .d(dx_pc_plus1_in), .clk(~clock), .input_enable(!stall_multdiv), .clr(reset));
@@ -161,12 +162,12 @@ module processor(
     assign alu_opcode = dx_rtype ? dx_aluop : (dx_bne || dx_blt) ? 5'b00001 : //subtract for comparison
                         5'b00000; //add for addi
     wire [31:0] alu_inB;
-    assign alu_inB = (dx_addi || dx_sw || dx_lw) ? dx_sign_ext_imm: dx_readDataB; //use sign extended imm for addi, B otherwise
+    assign alu_inB = (dx_addi || dx_sw || dx_lw) ? dx_sign_ext_imm: bypass_readDataB; //use sign extended imm for addi, B otherwise
 
     wire [31:0] alu_out;
     wire alu_ne, alu_lt, alu_overflow;
 
-    alu ALU(.data_operandA(dx_readDataA), .data_operandB(alu_inB), .ctrl_ALUopcode(alu_opcode), .ctrl_shiftamt(dx_shamt), .data_result(alu_out), .isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_overflow));
+    alu ALU(.data_operandA(bypass_readDataA), .data_operandB(alu_inB), .ctrl_ALUopcode(alu_opcode), .ctrl_shiftamt(dx_shamt), .data_result(alu_out), .isNotEqual(alu_ne), .isLessThan(alu_lt), .overflow(alu_overflow));
     
     //multdiv
     wire [31:0] multdiv_out;
@@ -174,7 +175,7 @@ module processor(
     wire multdiv_mult, multdiv_div;
     assign multdiv_mult = mul && !doing_multdiv;
     assign multdiv_div = div && !doing_multdiv;
-    multdiv MULTDIV(.data_operandA(dx_readDataA), .data_operandB(dx_readDataB), .ctrl_MULT(multdiv_mult), .ctrl_DIV(multdiv_div), .clock(clock), .data_result(multdiv_out), .data_exception(multdiv_exception), .data_resultRDY(multdiv_ready));
+    multdiv MULTDIV(.data_operandA(bypass_readDataA), .data_operandB(bypass_readDataB), .ctrl_MULT(multdiv_mult), .ctrl_DIV(multdiv_div), .clock(clock), .data_result(multdiv_out), .data_exception(multdiv_exception), .data_resultRDY(multdiv_ready));
 
     //need to stall for multdiv
     wire doing_multdiv, doing_multdiv_next;
@@ -191,24 +192,28 @@ module processor(
     endgenerate
     assign stall_multdiv = (doing_multdiv && !multdiv_ready) || (dx_multdiv && !doing_multdiv);
 
+    //stall load when lw in DX and next insn in FD uses its destination reg
+    assign stall_lw = dx_lw && (dx_rd != 5'd0) && ((dx_rd == ctrl_readRegA) || (dx_rd == ctrl_readRegB && !fd_sw));
+    assign stall = stall_multdiv || stall_lw;
+
     //branch/jump
     wire do_bne, do_blt, do_bex;
     assign do_bne = dx_bne && alu_ne;
     assign do_blt = dx_blt && alu_lt;
-    assign do_bex = dx_bex && (dx_readDataA != 32'b0);
+    assign do_bex = dx_bex && (bypass_readDataA != 32'b0);
     wire branch_taken, jump_taken;
     assign branch_taken = do_bne || do_blt || do_bex;
     assign jump_taken = dx_j || dx_jal || dx_jr;
     wire flush_pipeline;
-    assign flush_pipeline = branch_taken || jump_taken;
+    assign flush_pipeline = (branch_taken || jump_taken) && !stall;
 
     //branch target: PC+1 + offset
     wire [31:0] branch_target;
     cla32 branch_adder(.A(dx_pc_plus1), .B(dx_br_offset), .Cin(1'b0), .S(branch_target), .Cout());
 
     //PC mux
-    assign pc_in = stall_multdiv ? pc_out : 
-                   dx_jr ? dx_readDataA : 
+    assign pc_in = stall ? pc_out : 
+                   dx_jr ? bypass_readDataA : 
                    do_bex ? {5'b0, dx_target} :
                    branch_taken ? branch_target :
                    (dx_j || dx_jal) ? {5'b0, dx_target} : 
@@ -244,7 +249,7 @@ module processor(
     wire xm_regwrite, xm_sw, xm_lw;
     wire [31:0] xm_alu_in, xm_store_in;
     assign xm_alu_in = dx_writedata;
-    assign xm_store_in = dx_readDataB;
+    assign xm_store_in = bypass_readDataB;
     wire [4:0] xm_rd_in;
     assign xm_rd_in = dx_writereg;
     wire xm_rw_in, xm_sw_in, xm_lw_in;
@@ -263,6 +268,17 @@ module processor(
         end
     endgenerate
 
+    //ALU XM bypass
+    wire xm_bypass;
+    assign xm_bypass = xm_regwrite && (xm_rd != 5'd0);
+
+    wire [4:0] dx_readA_reg, dx_readB_reg;
+    assign dx_readA_reg = dx_bex ? 5'd30 : (dx_jr || dx_bne || dx_blt) ? dx_rd : dx_rs;
+    assign dx_readB_reg = dx_sw ? dx_rd : (dx_bne || dx_blt) ? dx_rs : dx_rt;
+    wire xm_bypass_A, B;
+    assign xm_bypass_A = xm_bypass && (xm_rd == dx_readA_reg);
+    assign xm_bypass_B = xm_bypass && (xm_rd == dx_readB_reg);
+
     //1-bit control signals
     dffe_ref xm_rw_ff(.q(xm_regwrite), .d(xm_rw_in), .clk(~clock), .en(1'b1), .clr(reset));
     dffe_ref xm_sw_ff(.q(xm_sw), .d(xm_sw_in), .clk(~clock), .en(1'b1), .clr(reset));
@@ -275,6 +291,7 @@ module processor(
 
     //M/W
     wire [31:0] mw_alu_out;
+    wire [31:0] mw_dmem;
     wire [4:0] mw_rd;
     wire mw_regwrite, mw_lw;
 
@@ -287,13 +304,33 @@ module processor(
         end
     endgenerate
 
+    //mw_dmem register that captures q_dmem as lw transitions from X/M to M/W
+    register32 mw_dmem_reg(.q(mw_dmem), .d(q_dmem), .clk(~clock), .input_enable(1'b1), .clr(reset));
+
+    //ALU MW bypass
+    wire mw_bypass;
+    assign mw_bypass = mw_regwrite && (mw_rd != 5'd0);
+
+    //MW bypasses  if XM not bypassing
+    wire mw_bypass_A, mw_bypass_B;
+    assign mw_bypass_A = mw_bypass && (mw_rd == dx_readA_reg) && !xm_bypass_A;
+    assign mw_bypass_B = mw_bypass && (mw_rd == dx_readB_reg) && !xm_bypass_B;
+
     //1-bit control signals
     dffe_ref mw_rw_ff(.q(mw_regwrite), .d(xm_regwrite), .clk(~clock), .en(1'b1), .clr(reset));
     dffe_ref mw_lw_ff(.q(mw_lw), .d(xm_lw), .clk(~clock), .en(1'b1), .clr(reset));
 
     //Writeback
-    wire [31:0] mw_writedata;
-    assign mw_writedata = mw_lw ? q_dmem : mw_alu_out;
+    wire [31:0] mw_writedata, xm_bypass_val;
+    assign mw_writedata = mw_lw ? mw_dmem : mw_alu_out;
+    assign xm_bypass_val = xm_lw ? q_dmem : xm_alu_out;
+    // Bypassed register read values
+    assign bypass_readDataA = xm_bypass_A ? xm_bypass_val :
+                                mw_bypass_A ? mw_writedata :
+                                dx_readDataA;
+    assign bypass_readDataB = xm_bypass_B ? xm_bypass_val :
+                                mw_bypass_B ? mw_writedata :
+                                dx_readDataB;
     assign data_writeReg = mw_writedata;
     assign ctrl_writeReg = mw_rd;
     assign ctrl_writeEnable = mw_regwrite && (mw_rd != 5'd0);
