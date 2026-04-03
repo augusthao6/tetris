@@ -35,7 +35,7 @@ module Wrapper (clock, reset);
 
 
 	// ADD YOUR MEMORY FILE HERE
-	localparam INSTR_FILE = "";
+	localparam INSTR_FILE = "C:\Users\ah670\Documents\tetris\assembler-python-version\tetris.mem";
 	
 	// Main Processing Unit
 	processor CPU(.clock(clock), .reset(reset), 
@@ -71,5 +71,26 @@ module Wrapper (clock, reset);
 		.addr(memAddr[11:0]), 
 		.dataIn(memDataIn), 
 		.dataOut(memDataOut));
+
+	// Framebuffer lives at dmem addresses 256–455 (FB_BASE = 256, 200 cells)
+	wire [6:0]  fb_addr;          // from VGA controller (0–199)
+	wire [31:0] fb_data;          // color value to VGA
+
+	// The VGA reads from dmem at address FB_BASE + fb_addr
+	// Your dmem is already a RAM — add a second read port, or mux the address:
+	wire [31:0] dmem_addr_vga;
+	assign dmem_addr_vga = 256 + {25'b0, fb_addr};  // FB_BASE + cell index
+
+	// Connect to dmem port B (if dual-port) or mux with processor read
+	// Simplest: use a separate small BRAM just for the framebuffer
+	// and have your processor sw into it at addresses 256–455
+
+	VGAController vga(
+		.clk(clk), .reset(reset),
+		.hSync(hSync), .vSync(vSync),
+		.VGA_R(VGA_R), .VGA_G(VGA_G), .VGA_B(VGA_B),
+		.fb_addr(fb_addr),
+		.fb_data(fb_data)           // driven from framebuffer BRAM port B
+	);
 
 endmodule
