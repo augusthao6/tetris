@@ -16,6 +16,9 @@
 ##############################################################
 
 start:
+    # Init stack pointer
+    addi    $r29, $r0, 4000       # SP = 4000 (grows down)
+
     # Load base addresses
     addi    $r20, $r0, 256        # FB_BASE
     addi    $r21, $r0, 456        # addr of piece_row
@@ -23,7 +26,7 @@ start:
     addi    $r23, $r0, 458        # addr of gravity_timer
 
     # MMIO timer address: 0xF001 = 61441
-    addi    $r24, $r0, 61441      # MMIO frame timer
+    addi    $r24, $r0, 4096       # MMIO frame timer (matches Wrapper io_read)
 
     # Init piece position: row=0, col=4 (center), timer=30
     sw      $r0,  0($r21)         # piece_row = 0
@@ -71,6 +74,8 @@ wf_done:
 # "Lock" here just stops the loop (infinite loop at bottom).
 ##############################################################
 tick_gravity:
+    addi    $r29, $r29, -1
+    sw      $r1, 0($r29)
     lw      $r2, 0($r23)          # gravity_timer
     addi    $r2, $r2, -1
     sw      $r2, 0($r23)
@@ -98,8 +103,9 @@ tg_move:
     sw      $r10, 0($r21)
 
 tg_done:
+    lw      $r1, 0($r29)
+    addi    $r29, $r29, 1
     jr      $r1
-
 ##############################################################
 # RENDER
 # Clear FB, then draw T-piece at (piece_row, piece_col).
@@ -107,6 +113,8 @@ tg_done:
 # Color = 3.
 ##############################################################
 render:
+    addi    $r29, $r29, -1
+    sw      $r1, 0($r29)
     # Clear framebuffer
     addi    $r2, $r0, 199
 render_clear:
@@ -132,6 +140,8 @@ render_draw:
     # Cell (1,1): fb[(row+1)*10 + col+1]
     jal     write_cell_1_1
 
+    lw      $r1, 0($r29)
+    addi    $r29, $r29, 1
     jr      $r1
 
 # Helper: compute fb index for (piece_row+dr)*10 + (piece_col+dc)

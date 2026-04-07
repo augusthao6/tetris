@@ -1,5 +1,5 @@
 module VGAController(     
-    input clk,
+    input clk_25mhz,
     input reset,
     output hSync,
     output vSync,
@@ -7,14 +7,14 @@ module VGAController(
     output [3:0] VGA_G,
     output [3:0] VGA_B,
     // ── NEW: framebuffer read port ──────────────────
-    output [6:0]  fb_addr,       // which cell to read (0–199, 10×20 grid)
+    output [7:0]  fb_addr,       // which cell to read (0–199, 10×20 grid)
     input  [31:0] fb_data        // color ID from processor's dmem
     // ── REMOVED: ps2, buttons, BTNU/L/R/D ──────────
 );
 
     // Clock divider — keep exactly as-is
     wire clk25, locked;
-    clk_wiz_0 pll(.clk_out1(clk25), .reset(reset), .locked(locked), .clk_in1(clk));
+    assign clk25 =clk_25mhz;
 
     localparam
         VIDEO_WIDTH  = 640,
@@ -37,23 +37,48 @@ module VGAController(
     );
 
     // ── Compute which Tetris cell the current pixel is in ──
-    wire [3:0] cell_col = x / CELL_W;   // 0–9
-    wire [4:0] cell_row = y / CELL_H;   // 0–19
+    reg [3:0] cell_col;
+    reg [4:0] cell_row;
+    reg [5:0] col_count;
+    reg [4:0] row_count;
+    reg active_d;
 
-    // ── Request the framebuffer cell one cycle ahead ──
-    // fb_addr is driven combinationally; fb_data comes back next cycle
-    // To handle the 1-cycle RAM latency, register x/y one cycle
-    reg [9:0] x_d; reg [8:0] y_d; reg active_d;
+    reg vSync_prev;
+    always @(posedge clk25)
+        vSync_prev <= vSync;
+    wire vSync_edge = !vSync && vSync_prev;
+    reg active_prev;
+    always @(posedge clk25)
+    active_prev <= active;
+    wire active_falling = !active && active_prev;
     always @(posedge clk25) begin
-        x_d      <= x;
-        y_d      <= y;
         active_d <= active;
+        if (!active) begin
+            cell_col  <= 0;
+            col_count <= 0;
+        end else begin
+            if (col_count == CELL_W - 1) begin
+                col_count <= 0;
+                cell_col  <= cell_col + 1;
+            end else
+                col_count <= col_count + 1;
+        end
+
+        if (active_falling) begin
+            if (row_count == CELL_H - 1) begin
+                row_count <= 0;
+                cell_row  <= cell_row + 1;
+            end else
+                row_count <= row_count + 1;
+        end
+
+        if (vSync_edge) begin
+            cell_row  <= 0;
+            row_count <= 0;
+        end
     end
 
-    // Address the cell for the *current* pixel (combinational)
-    wire [3:0] cur_col = x_d / CELL_W;
-    wire [4:0] cur_row = y_d / CELL_H;
-    assign fb_addr = cur_row * 10 + cur_col;  // 7 bits covers 0–199
+    assign fb_addr = (cell_row << 3) + (cell_row << 1) + cell_col;
 
     // ── Color decode ──────────────────────────────────────
     // fb_data holds color ID written by processor (0=empty, 1–7=piece colors)
@@ -74,7 +99,7 @@ module VGAController(
     end
 
     // Optional: draw a 1-pixel grid line between cells
-    wire on_grid = (x_d % CELL_W == 0) || (y_d % CELL_H == 0);
+    wire on_grid = (col_count == 0) || (row_count == 0);
     wire [11:0] finalColor = on_grid ? 12'h333 : piece_color;
 
     assign {VGA_R, VGA_G, VGA_B} = active_d ? finalColor : 12'd0;
