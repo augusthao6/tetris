@@ -12,11 +12,14 @@ module RAM_dual #(
     output reg [DATA_WIDTH-1:0] dataOut_b
 );
     reg [DATA_WIDTH-1:0] mem [0:DEPTH-1];
-
-    always @(negedge clk) begin
+    //PORT A, CPU: posedge
+    always @(posedge clk) begin
         if (wEn)
             mem[addr_a] <= dataIn_a;
         dataOut_a <= mem[addr_a];
+    end
+    //PORT B, VGA: negedge
+    always @(negedge clk) begin
         dataOut_b <= mem[addr_b];
     end
 endmodule

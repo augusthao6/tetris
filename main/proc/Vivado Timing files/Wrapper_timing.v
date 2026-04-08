@@ -90,7 +90,7 @@ module Wrapper (
     // ================= CPU =================
 
     processor CPU(
-        .clock(cpu_clk), .reset(reset),
+        .clock(clock), .reset(reset),
         .address_imem(instAddr), .q_imem(instData),
         .ctrl_writeEnable(rwe), .ctrl_writeReg(rd),
         .ctrl_readRegA(rs1), .ctrl_readRegB(rs2),

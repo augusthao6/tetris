@@ -65,7 +65,7 @@ wf_loop:
     bne     $r3, $r2, wf_done
     j       wf_loop
 wf_done:
-    jr      $r1
+    jr      $r31
 
 ##############################################################
 # TICK_GRAVITY
@@ -75,7 +75,7 @@ wf_done:
 ##############################################################
 tick_gravity:
     addi    $r29, $r29, -1
-    sw      $r1, 0($r29)
+    sw      $r31, 0($r29)
     lw      $r2, 0($r23)          # gravity_timer
     addi    $r2, $r2, -1
     sw      $r2, 0($r23)
@@ -103,9 +103,9 @@ tg_move:
     sw      $r10, 0($r21)
 
 tg_done:
-    lw      $r1, 0($r29)
+    lw      $r31, 0($r29)
     addi    $r29, $r29, 1
-    jr      $r1
+    jr      $r31
 ##############################################################
 # RENDER
 # Clear FB, then draw T-piece at (piece_row, piece_col).
@@ -114,7 +114,7 @@ tg_done:
 ##############################################################
 render:
     addi    $r29, $r29, -1
-    sw      $r1, 0($r29)
+    sw      $r31, 0($r29)
     # Clear framebuffer
     addi    $r2, $r0, 199
 render_clear:
@@ -140,9 +140,9 @@ render_draw:
     # Cell (1,1): fb[(row+1)*10 + col+1]
     jal     write_cell_1_1
 
-    lw      $r1, 0($r29)
+    lw      $r31, 0($r29)
     addi    $r29, $r29, 1
-    jr      $r1
+    jr      $r31
 
 # Helper: compute fb index for (piece_row+dr)*10 + (piece_col+dc)
 # row*10 = (row<<3)+(row<<1)
@@ -155,7 +155,7 @@ write_cell_0_0:
     add     $r4, $r4, $r11        # + col
     add     $r4, $r20, $r4        # + FB_BASE
     sw      $r19, 0($r4)
-    jr      $r1
+    jr      $r31
 
 write_cell_0_1:
     # dr=0, dc=1
@@ -166,7 +166,7 @@ write_cell_0_1:
     addi    $r4, $r4, 1           # col+1
     add     $r4, $r20, $r4
     sw      $r19, 0($r4)
-    jr      $r1
+    jr      $r31
 
 write_cell_0_2:
     # dr=0, dc=2
@@ -177,7 +177,7 @@ write_cell_0_2:
     addi    $r4, $r4, 2           # col+2
     add     $r4, $r20, $r4
     sw      $r19, 0($r4)
-    jr      $r1
+    jr      $r31
 
 write_cell_1_1:
     # dr=1, dc=1
@@ -189,7 +189,7 @@ write_cell_1_1:
     addi    $r4, $r4, 1           # col+1
     add     $r4, $r20, $r4
     sw      $r19, 0($r4)
-    jr      $r1
+    jr      $r31
 
 ##############################################################
 # PIECE_LOCKED — piece hit the floor, stop here

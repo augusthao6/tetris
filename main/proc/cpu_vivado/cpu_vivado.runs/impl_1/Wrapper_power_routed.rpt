@@ -1,7 +1,7 @@
 Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
-| Date             : Tue Apr  7 17:44:55 2026
+| Date             : Wed Apr  8 12:14:19 2026
 | Host             : P1-04 running 64-bit major release  (build 9200)
 | Command          : report_power -file Wrapper_power_routed.rpt -pb Wrapper_power_summary_routed.pb -rpx Wrapper_power_routed.rpx
 | Design           : Wrapper
@@ -30,10 +30,10 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.213        |
+| Total On-Chip Power (W)  | 0.215        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.115        |
+| Dynamic (W)              | 0.117        |
 | Device Static (W)        | 0.098        |
 | Effective TJA (C/W)      | 4.6          |
 | Max Ambient (C)          | 84.0         |
@@ -49,24 +49,22 @@ Table of Contents
 1.1 On-Chip Components
 ----------------------
 
-+--------------------------+-----------+----------+-----------+-----------------+
-| On-Chip                  | Power (W) | Used     | Available | Utilization (%) |
-+--------------------------+-----------+----------+-----------+-----------------+
-| Clocks                   |     0.003 |        8 |       --- |             --- |
-| Slice Logic              |     0.005 |     5502 |       --- |             --- |
-|   LUT as Logic           |     0.005 |     2904 |     63400 |            4.58 |
-|   Register               |    <0.001 |     1682 |    126800 |            1.33 |
-|   LUT as Distributed RAM |    <0.001 |       32 |     19000 |            0.17 |
-|   F7/F8 Muxes            |    <0.001 |       24 |     63400 |            0.04 |
-|   CARRY4                 |    <0.001 |       10 |     15850 |            0.06 |
-|   Others                 |     0.000 |      391 |       --- |             --- |
-| Signals                  |     0.007 |     4633 |       --- |             --- |
-| Block RAM                |     0.002 |        4 |       135 |            2.96 |
-| PLL                      |     0.098 |        1 |         6 |           16.67 |
-| I/O                      |     0.001 |       32 |       210 |           15.24 |
-| Static Power             |     0.098 |          |           |                 |
-| Total                    |     0.213 |          |           |                 |
-+--------------------------+-----------+----------+-----------+-----------------+
++----------------+-----------+----------+-----------+-----------------+
+| On-Chip        | Power (W) | Used     | Available | Utilization (%) |
++----------------+-----------+----------+-----------+-----------------+
+| Clocks         |     0.002 |        8 |       --- |             --- |
+| Slice Logic    |     0.005 |     5462 |       --- |             --- |
+|   LUT as Logic |     0.005 |     2971 |     63400 |            4.69 |
+|   Register     |    <0.001 |     1686 |    126800 |            1.33 |
+|   CARRY4       |    <0.001 |       10 |     15850 |            0.06 |
+|   Others       |     0.000 |      409 |       --- |             --- |
+| Signals        |     0.006 |     4658 |       --- |             --- |
+| Block RAM      |     0.005 |        8 |       135 |            5.93 |
+| PLL            |     0.098 |        1 |         6 |           16.67 |
+| I/O            |    <0.001 |       32 |       210 |           15.24 |
+| Static Power   |     0.098 |          |           |                 |
+| Total          |     0.215 |          |           |                 |
++----------------+-----------+----------+-----------+-----------------+
 
 
 1.2 Power Supply Summary
@@ -75,7 +73,7 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) | Powerup (A) | Budget (A)  | Margin (A) |
 +-----------+-------------+-----------+-------------+------------+-------------+-------------+------------+
-| Vccint    |       1.000 |     0.041 |       0.025 |      0.015 |       NA    | Unspecified | NA         |
+| Vccint    |       1.000 |     0.043 |       0.027 |      0.015 |       NA    | Unspecified | NA         |
 | Vccaux    |       1.800 |     0.068 |       0.049 |      0.018 |       NA    | Unspecified | NA         |
 | Vcco33    |       3.300 |     0.004 |       0.000 |      0.004 |       NA    | Unspecified | NA         |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |       NA    | Unspecified | NA         |
@@ -146,22 +144,22 @@ Table of Contents
 3.1 By Hierarchy
 ----------------
 
-+--------------------------------+-----------+
-| Name                           | Power (W) |
-+--------------------------------+-----------+
-| Wrapper                        |     0.115 |
-|   CPU                          |     0.011 |
-|     dx_insn_reg                |     0.004 |
-|       dff_loop[27].dff         |     0.002 |
-|     fd_insn_reg                |     0.003 |
-|       dff_loop[27].dff         |     0.002 |
-|       dff_loop[31].dff         |     0.001 |
-|     mw_dmem_reg                |     0.001 |
-|   InstMem                      |     0.002 |
-|   RegisterFile                 |     0.003 |
-|     register_loop[31].reg_inst |     0.001 |
-|   clk25                        |     0.098 |
-|     inst                       |     0.098 |
-+--------------------------------+-----------+
++------------------------+-----------+
+| Name                   | Power (W) |
++------------------------+-----------+
+| Wrapper                |     0.117 |
+|   CPU                  |     0.011 |
+|     dx_insn_reg        |     0.004 |
+|       dff_loop[27].dff |     0.002 |
+|     fd_insn_reg        |     0.003 |
+|       dff_loop[27].dff |     0.002 |
+|       dff_loop[31].dff |     0.001 |
+|     mw_dmem_reg        |     0.001 |
+|   InstMem              |     0.002 |
+|   ProcMem              |     0.003 |
+|   RegisterFile         |     0.003 |
+|   clk25                |     0.098 |
+|     inst               |     0.098 |
++------------------------+-----------+
 
 

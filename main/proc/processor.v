@@ -275,7 +275,7 @@ module processor(
     wire [4:0] dx_readA_reg, dx_readB_reg;
     assign dx_readA_reg = dx_bex ? 5'd30 : (dx_jr || dx_bne || dx_blt) ? dx_rd : dx_rs;
     assign dx_readB_reg = dx_sw ? dx_rd : (dx_bne || dx_blt) ? dx_rs : dx_rt;
-    wire xm_bypass_A, B;
+    wire xm_bypass_A, xm_bypass_B;
     assign xm_bypass_A = xm_bypass && (xm_rd == dx_readA_reg);
     assign xm_bypass_B = xm_bypass && (xm_rd == dx_readB_reg);
 

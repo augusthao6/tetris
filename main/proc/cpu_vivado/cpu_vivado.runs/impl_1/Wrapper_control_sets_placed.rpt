@@ -1,7 +1,7 @@
 Copyright 1986-2021 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2021.1 (win64) Build 3247384 Thu Jun 10 19:36:33 MDT 2021
-| Date         : Tue Apr  7 17:43:28 2026
+| Date         : Wed Apr  8 12:13:47 2026
 | Host         : P1-04 running 64-bit major release  (build 9200)
 | Command      : report_control_sets -verbose -file Wrapper_control_sets_placed.rpt
 | Design       : Wrapper
@@ -23,11 +23,11 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Total control sets                                       |    53 |
-|    Minimum number of control sets                        |    53 |
+| Total control sets                                       |    50 |
+|    Minimum number of control sets                        |    50 |
 |    Addition due to synthesis replication                 |     0 |
 |    Addition due to physical synthesis replication        |     0 |
-| Unused register locations in slices containing registers |    62 |
+| Unused register locations in slices containing registers |    58 |
 +----------------------------------------------------------+-------+
 * Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
 ** Run report_qor_suggestions for automated merging and remapping suggestions
@@ -39,15 +39,15 @@ Table of Contents
 +--------------------+-------+
 |       Fanout       | Count |
 +--------------------+-------+
-| Total control sets |    53 |
-| >= 0 to < 4        |     2 |
-| >= 4 to < 6        |     4 |
-| >= 6 to < 8        |     2 |
-| >= 8 to < 10       |     1 |
+| Total control sets |    50 |
+| >= 0 to < 4        |     1 |
+| >= 4 to < 6        |     5 |
+| >= 6 to < 8        |     1 |
+| >= 8 to < 10       |     0 |
 | >= 10 to < 12      |     2 |
 | >= 12 to < 14      |     0 |
 | >= 14 to < 16      |     1 |
-| >= 16              |    41 |
+| >= 16              |    40 |
 +--------------------+-------+
 * Control sets can be remapped at either synth_design or opt_design
 
@@ -58,12 +58,12 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
-| No           | No                    | No                     |               8 |            7 |
-| No           | No                    | Yes                    |             170 |           95 |
+| No           | No                    | No                     |               4 |            4 |
+| No           | No                    | Yes                    |             186 |          109 |
 | No           | Yes                   | No                     |               6 |            2 |
-| Yes          | No                    | No                     |             273 |          122 |
-| Yes          | No                    | Yes                    |            1165 |          487 |
-| Yes          | Yes                   | No                     |              60 |           24 |
+| Yes          | No                    | No                     |             265 |          121 |
+| Yes          | No                    | Yes                    |            1165 |          475 |
+| Yes          | Yes                   | No                     |              60 |           23 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
@@ -73,59 +73,56 @@ Table of Contents
 +----------------------+-----------------------------------------------------+-----------------------------------------------+------------------+----------------+--------------+
 |     Clock Signal     |                    Enable Signal                    |                Set/Reset Signal               | Slice Load Count | Bel Load Count | Bels / Slice |
 +----------------------+-----------------------------------------------------+-----------------------------------------------+------------------+----------------+--------------+
-|  cpu_clk_BUFG        |                                                     |                                               |                1 |              2 |         2.00 |
-|  cpu_clk_BUFG        | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_2 |                2 |              2 |         1.00 |
+|  clk25/inst/clk_out1 | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_2 |                2 |              2 |         1.00 |
 |  clk25/inst/clk_out1 | vga/sel                                             | vga/Display/SR[0]                             |                1 |              4 |         4.00 |
-|  clk25/inst/clk_out1 | vga/Display/E[0]                                    | vga/Display/vPos_reg[3]_0[0]                  |                2 |              5 |         2.50 |
-|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/doing_multdiv_next1 | BTNU_IBUF                                     |                2 |              5 |         2.50 |
+|  clk25/inst/clk_out1 |                                                     |                                               |                4 |              4 |         1.00 |
+|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/doing_multdiv_next1 | BTNU_IBUF                                     |                3 |              5 |         1.67 |
 |  clk25/inst/clk_out1 | vga/Display/active_prev_reg[0]                      | vga/Display/vPos_reg[3]_0[0]                  |                1 |              5 |         5.00 |
+|  clk25/inst/clk_out1 | vga/Display/E[0]                                    | vga/Display/vPos_reg[3]_0[0]                  |                2 |              5 |         2.50 |
 |  clk25/inst/clk_out1 |                                                     | vga/Display/SR[0]                             |                2 |              6 |         3.00 |
-|  clk25/inst/clk_out1 |                                                     |                                               |                6 |              6 |         1.00 |
-|  clk25/inst/clk_out1 | CPU/xm_result/dff_loop[13].dff/q_reg_2[0]           |                                               |                8 |              8 |         1.00 |
-|  clk25/inst/clk_out1 | vga/Display/vPos                                    | BTNU_IBUF                                     |                4 |             10 |         2.50 |
 |  clk25/inst/clk_out1 |                                                     | BTNU_IBUF                                     |                4 |             10 |         2.50 |
-|  cpu_clk_BUFG        | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_6       |                8 |             14 |         1.75 |
+|  clk25/inst/clk_out1 | vga/Display/vPos                                    | BTNU_IBUF                                     |                3 |             10 |         3.33 |
+|  clk25/inst/clk_out1 | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_6       |               11 |             14 |         1.27 |
 |  clk25/inst/clk_out1 | CPU/xm_result/dff_loop[13].dff/E[0]                 |                                               |                6 |             16 |         2.67 |
-|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/input_enable0       | CPU/dx_insn_reg/dff_loop[31].dff/BTNU         |               10 |             30 |         3.00 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__9_n_0                           | BTNU_IBUF                                     |               20 |             32 |         1.60 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__6_n_0                           | BTNU_IBUF                                     |               11 |             32 |         2.91 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1_n_0                              | BTNU_IBUF                                     |               20 |             32 |         1.60 |
-|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/input_enable0       | BTNU_IBUF                                     |               15 |             32 |         2.13 |
+|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/input_enable0       | CPU/dx_insn_reg/dff_loop[31].dff/BTNU         |                6 |             30 |         5.00 |
+|  clk0                | CPU/dx_insn_reg/dff_loop[2].dff/input_enable0       | BTNU_IBUF                                     |               17 |             32 |         1.88 |
 |  clk25/inst/clk_out1 | vga/Display/frame_counter0                          |                                               |                8 |             32 |         4.00 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_2                  | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_4                  | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_1                  | BTNU_IBUF                                     |               29 |             32 |         1.10 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_1                  | BTNU_IBUF                                     |               16 |             32 |         2.00 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_3                  | BTNU_IBUF                                     |               13 |             32 |         2.46 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_3                  | BTNU_IBUF                                     |               12 |             32 |         2.67 |
-|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_4                                | BTNU_IBUF                                     |               17 |             32 |         1.88 |
-|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_2                                | BTNU_IBUF                                     |                7 |             32 |         4.57 |
-|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_1                                | BTNU_IBUF                                     |               15 |             32 |         2.13 |
-|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_3                                | BTNU_IBUF                                     |               14 |             32 |         2.29 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_2                  | BTNU_IBUF                                     |                7 |             32 |         4.57 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_5                  | BTNU_IBUF                                     |               11 |             32 |         2.91 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_7                  | BTNU_IBUF                                     |                8 |             32 |         4.00 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_1                  | BTNU_IBUF                                     |                8 |             32 |         4.00 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_2                  | BTNU_IBUF                                     |               10 |             32 |         3.20 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_3                  | BTNU_IBUF                                     |                9 |             32 |         3.56 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[1].mw_rd_ff/q_reg_4                  | BTNU_IBUF                                     |               11 |             32 |         2.91 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_7                  | BTNU_IBUF                                     |               11 |             32 |         2.91 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_1                  | BTNU_IBUF                                     |               27 |             32 |         1.19 |
 |  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_4                  | BTNU_IBUF                                     |               14 |             32 |         2.29 |
-|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_6                  | BTNU_IBUF                                     |               26 |             32 |         1.23 |
-|  clk25/inst/clk_out1 | CPU/xm_result/dff_loop[13].dff/ram_wEn              |                                               |                8 |             32 |         4.00 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__12_n_0                          | BTNU_IBUF                                     |               25 |             32 |         1.28 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__10_n_0                          | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__2_n_0                           | BTNU_IBUF                                     |               16 |             32 |         2.00 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__11_n_0                          | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__5_n_0                           | BTNU_IBUF                                     |               27 |             32 |         1.19 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__13_n_0                          | BTNU_IBUF                                     |               10 |             32 |         3.20 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__8_n_0                           | BTNU_IBUF                                     |                7 |             32 |         4.57 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__3_n_0                           | BTNU_IBUF                                     |               13 |             32 |         2.46 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__0_n_0                           | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__14_n_0                          | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__4_n_0                           | BTNU_IBUF                                     |               12 |             32 |         2.67 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_6                  | BTNU_IBUF                                     |               25 |             32 |         1.28 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_2                  | BTNU_IBUF                                     |               10 |             32 |         3.20 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_3                  | BTNU_IBUF                                     |               11 |             32 |         2.91 |
+|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_2                                | BTNU_IBUF                                     |                6 |             32 |         5.33 |
+|  clk25/inst/clk_out1 | CPU/mw_rd_loop[3].mw_rd_ff/q_reg_5                  | BTNU_IBUF                                     |                7 |             32 |         4.57 |
+|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_4                                | BTNU_IBUF                                     |               19 |             32 |         1.68 |
+|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_1                                | BTNU_IBUF                                     |               18 |             32 |         1.78 |
+|  clk25/inst/clk_out1 | CPU/mw_rw_ff/q_reg_3                                | BTNU_IBUF                                     |               13 |             32 |         2.46 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__6_n_0                           | BTNU_IBUF                                     |                8 |             32 |         4.00 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__3_n_0                           | BTNU_IBUF                                     |                7 |             32 |         4.57 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__5_n_0                           | BTNU_IBUF                                     |               22 |             32 |         1.45 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__12_n_0                          | BTNU_IBUF                                     |               24 |             32 |         1.33 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__8_n_0                           | BTNU_IBUF                                     |                8 |             32 |         4.00 |
 |  clk25/inst/clk_out1 | RegisterFile/q_i_1__1_n_0                           | BTNU_IBUF                                     |                9 |             32 |         3.56 |
-|  clk25/inst/clk_out1 | RegisterFile/q_i_1__7_n_0                           | BTNU_IBUF                                     |               11 |             32 |         2.91 |
-|  cpu_clk_BUFG        | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_2             |                                               |               10 |             33 |         3.30 |
-|  cpu_clk_BUFG        | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_3             |                                               |               22 |             66 |         3.00 |
-|  cpu_clk_BUFG        | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       |                                               |               68 |            118 |         1.74 |
-|  clk0                | CPU/MULTDIV/count_reg/dff_loop[5].dff/q_reg_1       | BTNU_IBUF                                     |               42 |            126 |         3.00 |
-|  clk0                |                                                     | BTNU_IBUF                                     |               91 |            160 |         1.76 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__2_n_0                           | BTNU_IBUF                                     |               14 |             32 |         2.29 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__0_n_0                           | BTNU_IBUF                                     |                9 |             32 |         3.56 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__9_n_0                           | BTNU_IBUF                                     |               21 |             32 |         1.52 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__4_n_0                           | BTNU_IBUF                                     |                7 |             32 |         4.57 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1_n_0                              | BTNU_IBUF                                     |               20 |             32 |         1.60 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__10_n_0                          | BTNU_IBUF                                     |                7 |             32 |         4.57 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__14_n_0                          | BTNU_IBUF                                     |               10 |             32 |         3.20 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__13_n_0                          | BTNU_IBUF                                     |                7 |             32 |         4.57 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__11_n_0                          | BTNU_IBUF                                     |                6 |             32 |         5.33 |
+|  clk25/inst/clk_out1 | RegisterFile/q_i_1__7_n_0                           | BTNU_IBUF                                     |                8 |             32 |         4.00 |
+|  clk25/inst/clk_out1 | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_2             |                                               |               15 |             33 |         2.20 |
+|  clk25/inst/clk_out1 | CPU/dx_insn_reg/dff_loop[2].dff/q_reg_3             |                                               |               21 |             66 |         3.14 |
+|  clk25/inst/clk_out1 | CPU/MULTDIV/count_reg/dff_loop[0].dff/q_reg_1       |                                               |               71 |            118 |         1.66 |
+|  clk0                | CPU/MULTDIV/count_reg/dff_loop[5].dff/q_reg_1       | BTNU_IBUF                                     |               66 |            126 |         1.91 |
+|  clk0                |                                                     | BTNU_IBUF                                     |              105 |            176 |         1.68 |
 +----------------------+-----------------------------------------------------+-----------------------------------------------+------------------+----------------+--------------+
 
 
