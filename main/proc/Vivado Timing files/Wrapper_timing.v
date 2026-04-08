@@ -88,7 +88,6 @@ module Wrapper (
     localparam INSTR_FILE = "tetris";
 
     // ================= CPU =================
-   wire cpu_clk = clock & !vga_turn;
 
     processor CPU(
         .clock(cpu_clk), .reset(reset),
@@ -118,29 +117,14 @@ module Wrapper (
     );
 
     // ================= RAM =================
-    // Mux: VGA reads on one half-cycle, CPU on the other
-    reg vga_turn;
-    always @(posedge clock)
-        vga_turn <= ~vga_turn;
-    
-    wire [11:0] ram_addr = vga_turn ? (fb_addr + 12'd256) : memAddr[11:0];
-    wire ram_wEn = vga_turn ? 1'b0 : (mwe && !io_write);
-    
-    // Capture VGA data when it's VGA's turn
-    reg [31:0] fb_data_reg;
-    always @(posedge clock)
-        if (vga_turn)
-            fb_data_reg <= memDataOut;
-    
-    assign fb_data = fb_data_reg;
-    
-    // RAM uses muxed signals
-    RAM ProcMem(
+    RAM_dual ProcMem(
         .clk(clock),
-        .wEn(ram_wEn),
-        .addr(ram_addr),
-        .dataIn(memDataIn),
-        .dataOut(memDataOut)
+        .wEn(mwe && !io_write),
+        .addr_a(memAddr[11:0]),
+        .dataIn_a(memDataIn),
+        .dataOut_a(memDataOut),
+        .addr_b(fb_addr + 12'd256),
+        .dataOut_b(fb_data)
     );
     // ================= VGA =================
     wire [7:0] fb_addr;
