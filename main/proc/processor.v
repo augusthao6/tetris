@@ -75,6 +75,7 @@ module processor(
     wire [31:0] fd_insn_final, fd_pc_plus1_in;
     wire stall_multdiv, stall_lw, stall;
     wire [31:0] bypass_readDataA, bypass_readDataB;
+    wire flush_pipeline;
 
     assign fd_insn_final = (reset || flush_pipeline) ? 32'b0 : q_imem;
     assign fd_pc_plus1_in = flush_pipeline ? 32'b0 : pc_plus1;
@@ -204,7 +205,6 @@ module processor(
     wire branch_taken, jump_taken;
     assign branch_taken = do_bne || do_blt || do_bex;
     assign jump_taken = dx_j || dx_jal || dx_jr;
-    wire flush_pipeline;
     assign flush_pipeline = (branch_taken || jump_taken) && !stall;
 
     //branch target: PC+1 + offset
