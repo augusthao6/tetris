@@ -28,7 +28,10 @@
 
 module Wrapper (
     input clk_100mhz,
-    input BTNU, 
+    input BTNU,                    // reset
+    input BTNL,                    // move left
+    input BTNR,                    // move right
+    input BTNC,                    // rotate (center button)
     input [15:0] SW,
     output reg [15:0] LED,
 
@@ -61,12 +64,13 @@ module Wrapper (
     reg [15:0] SW_Q, SW_M;  
 
     // ================= IO mapping =================
-    wire io_read  = (memAddr == 32'd4096);
-    wire io_write = (memAddr == 32'd4097);
+    wire io_read     = (memAddr == 32'd4096);   // frame counter read
+    wire io_write    = (memAddr == 32'd4097);   // LED write
+    wire io_btn_read = (memAddr == 32'd4098);   // button state read
 
     always @(negedge clock) begin
         SW_M <= SW;
-        SW_Q <= SW_M; 
+        SW_Q <= SW_M;
     end
 
     always @(posedge clock) begin
@@ -82,7 +86,22 @@ module Wrapper (
             frame_counter <= frame_counter + 1;
     end
 
-    assign q_dmem = io_read ? frame_counter : memDataOut;
+    // ---- Button debounce (2-stage synchronizer) ----
+    reg [1:0] btnL_sync, btnR_sync, btnC_sync;
+    always @(posedge clock) begin
+        btnL_sync <= {btnL_sync[0], BTNL};
+        btnR_sync <= {btnR_sync[0], BTNR};
+        btnC_sync <= {btnC_sync[0], BTNC};
+    end
+    wire btn_left   = btnL_sync[1];
+    wire btn_right  = btnR_sync[1];
+    wire btn_rotate = btnC_sync[1];
+
+    // bit 0 = left, bit 1 = right, bit 2 = rotate
+    wire [31:0] btn_state = {29'b0, btn_rotate, btn_right, btn_left};
+
+    assign q_dmem = io_read     ? frame_counter :
+                    io_btn_read ? btn_state      : memDataOut;
 
     // ================= Program =================
     localparam INSTR_FILE = "tetris";

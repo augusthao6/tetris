@@ -1,0 +1,38 @@
+#-----------------------------------------------------------
+# Vivado v2021.1 (64-bit)
+# SW Build 3247384 on Thu Jun 10 19:36:33 MDT 2021
+# IP Build 3246043 on Fri Jun 11 00:30:35 MDT 2021
+# Start of session at: Sat Apr 11 16:07:34 2026
+# Process ID: 9896
+# Current directory: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado
+# Command line: vivado.exe -gui_launcher_event rodinguilauncherevent23692 C:\Users\ena17\Desktop\tetris\main\proc\cpu_vivado\cpu_vivado.xpr
+# Log file: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado/vivado.log
+# Journal file: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado\vivado.jou
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado/cpu_vivado.xpr
+update_compile_order -fileset sources_1
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
+export_ip_user_files -of_objects  [get_files C:/Users/ena17/Desktop/tetris/main/proc/lab7-8_kit/ascii.mem] -no_script -reset -force -quiet
+remove_files  C:/Users/ena17/Desktop/tetris/main/proc/lab7-8_kit/ascii.mem
+export_ip_user_files -of_objects  [get_files C:/Users/ena17/Desktop/tetris/main/proc/lab7-8_kit/sprites.mem] -no_script -reset -force -quiet
+remove_files  C:/Users/ena17/Desktop/tetris/main/proc/lab7-8_kit/sprites.mem
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
+export_ip_user_files -of_objects  [get_files {{C:/Users/ena17/Desktop/tetris/main/proc/Vivado Timing files/timing.mem}}] -no_script -reset -force -quiet
+remove_files  {{C:/Users/ena17/Desktop/tetris/main/proc/Vivado Timing files/timing.mem}}
+reset_run synth_1
+launch_runs synth_1
+wait_on_run synth_1
