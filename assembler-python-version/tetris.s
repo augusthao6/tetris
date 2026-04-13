@@ -64,8 +64,8 @@ start:
     addi    $r27, $r0, 660
     addi    $r28, $r0, 4098
 
-    # Clear FB + locked_board (400 words starting at address 256)
-    addi    $r2, $r0, 399
+    # Clear FB + locked_board + piece_rot + btn_prev + score (addr 256..662)
+    addi    $r2, $r0, 406
 clear_all:
     add     $r3, $r20, $r2
     sw      $r0, 0($r3)
@@ -85,6 +85,10 @@ init_piece:
     sw      $r0, 0($r27)          # piece_rot = 0
     addi    $r2, $r0, 661
     sw      $r0, 0($r2)           # btn_prev = 0
+    addi    $r2, $r0, 662
+    sw      $r0, 0($r2)           # score = 0
+    addi    $r2, $r0, 4097
+    sw      $r0, 0($r2)           # LED = 0
 
 ##############################################################
 # GAME LOOP
@@ -144,7 +148,7 @@ tick_gravity:
     bne     $r12, $r0, tg_floor_other
     # I-piece
     bne     $r13, $r0, tg_floor_I_vert
-    addi    $r4, $r0, 20          # I rot0: 1-tall, max row 19
+    addi    $r4, $r0, 19          # I rot0: 1-tall, r+1<=19 -> r<19
     blt     $r10, $r4, tg_floor_ok
     j       tg_lock
 tg_floor_I_vert:
@@ -208,6 +212,7 @@ tg_floor_ok:
 
 tg_lock:
     jal     lock_piece
+    jal     clear_lines
     jal     spawn_piece
     jal     check_gameover        # halts if top rows occupied
 
@@ -562,7 +567,11 @@ cgo_dec:
     addi    $r2, $r2, -1
     j       cgo_loop
 cgo_halt:
-    j       cgo_halt              # GAME OVER — freeze
+    addi    $r2, $r0, 4097
+    addi    $r3, $r0, -1          # 0xFFFF — all LEDs on
+    sw      $r3, 0($r2)           # light up LEDs
+cgo_loop2:
+    j       cgo_loop2             # GAME OVER — freeze
 
 ##############################################################
 # LOCK_PIECE — stamp active piece into locked_board
@@ -1103,13 +1112,15 @@ draw_L:
 # Rising-edge detected via btn_prev at addr 661.
 ##############################################################
 read_input:
-    addi    $r29, $r29, -1
-    sw      $r31, 0($r29)
+    addi    $r29, $r29, -3        # slots: [0]=btn_prev [1]=btn_cur [2]=$r31
+    sw      $r31, 2($r29)
 
     lw      $r2, 0($r28)          # current button state
     addi    $r4, $r0, 661         # addr(btn_prev)
     lw      $r3, 0($r4)           # previous state
     sw      $r2, 0($r4)           # save current as new prev
+    sw      $r2, 1($r29)          # stash current on stack
+    sw      $r3, 0($r29)          # stash prev on stack
 
     # ── Left (bit 0) rising edge? ─────────────────────────
     addi    $r5, $r0, 1
@@ -1120,6 +1131,8 @@ ri_left_now:
     and     $r7, $r3, $r5
     bne     $r7, $r0, ri_right    # was held — skip
     jal     move_left
+    lw      $r2, 1($r29)          # restore (clobbered by collision fn)
+    lw      $r3, 0($r29)
 
     # ── Right (bit 1) rising edge? ────────────────────────
 ri_right:
@@ -1131,21 +1144,34 @@ ri_right_now:
     and     $r7, $r3, $r5
     bne     $r7, $r0, ri_rotate
     jal     move_right
+    lw      $r2, 1($r29)          # restore
+    lw      $r3, 0($r29)
 
     # ── Rotate (bit 2) rising edge? ───────────────────────
 ri_rotate:
     addi    $r5, $r0, 4
     and     $r6, $r2, $r5
     bne     $r6, $r0, ri_rot_now
-    j       ri_done
+    j       ri_soft_drop
 ri_rot_now:
     and     $r7, $r3, $r5
-    bne     $r7, $r0, ri_done
+    bne     $r7, $r0, ri_soft_drop
     jal     rotate_piece
+    lw      $r2, 1($r29)          # restore for soft drop check
+
+    # ── Soft drop (bit 3) level-triggered ─────────────────
+ri_soft_drop:
+    addi    $r5, $r0, 8
+    and     $r6, $r2, $r5
+    bne     $r6, $r0, ri_do_drop
+    j       ri_done
+ri_do_drop:
+    addi    $r5, $r0, 1
+    sw      $r5, 0($r23)          # gravity_timer = 1 → force drop this frame
 
 ri_done:
-    lw      $r31, 0($r29)
-    addi    $r29, $r29, 1
+    lw      $r31, 2($r29)
+    addi    $r29, $r29, 3
     jr      $r31
 
 ##############################################################
@@ -1184,19 +1210,19 @@ move_right:
     # If rot == 0, use existing rot-0 width dispatch
     bne     $r13, $r0, mr_rotated
 
-    # rot-0 width: I→4(max6), O→2(max8), others→3(max7)
+    # rot-0 width: I→4(max col=5), O→2(max col=7), others→3(max col=6)
     bne     $r12, $r0, mr0_not_I
-    addi    $r4, $r0, 7           # I: col < 7 (≤6)
+    addi    $r4, $r0, 6           # I: 4-wide, col+4<=9 -> col<6
     blt     $r11, $r4, mr_wall_ok
     j       mr_done
 mr0_not_I:
     addi    $r2, $r0, 1
     bne     $r12, $r2, mr0_not_O
-    addi    $r4, $r0, 9           # O: col < 9 (≤8)
+    addi    $r4, $r0, 8           # O: 2-wide, col+2<=9 -> col<8
     blt     $r11, $r4, mr_wall_ok
     j       mr_done
 mr0_not_O:
-    addi    $r4, $r0, 8           # T,S,Z,J,L: col < 8 (≤7)
+    addi    $r4, $r0, 7           # T,S,Z,J,L: 3-wide, col+3<=9 -> col<7
     blt     $r11, $r4, mr_wall_ok
     j       mr_done
 
@@ -1212,11 +1238,11 @@ mr_rot_not_I:
     sll     $r2, $r2, 1
     sub     $r2, $r13, $r2        # $r2 = piece_rot & 1
     bne     $r2, $r0, mr_rot_odd
-    addi    $r4, $r0, 8           # even rot: col < 8 (max 7)
+    addi    $r4, $r0, 7           # even rot: 3-wide, col+3<=9 -> col<7
     blt     $r11, $r4, mr_wall_ok
     j       mr_done
 mr_rot_odd:
-    addi    $r4, $r0, 9           # odd rot: col < 9 (max 8)
+    addi    $r4, $r0, 8           # odd rot: 2-wide, col+2<=9 -> col<8
     blt     $r11, $r4, mr_wall_ok
     j       mr_done
 
@@ -2591,7 +2617,22 @@ rp_not_O:
 rp_I_ok:
     j       rp_clamp
 rp_not_I:
-    # All others: 4 rotations (mod 4)
+    # S(3) and Z(4): 2 rotations (mod 2)
+    addi    $r2, $r0, 3
+    bne     $r12, $r2, rp_not_S
+    addi    $r2, $r0, 2
+    bne     $r14, $r2, rp_clamp
+    addi    $r14, $r0, 0
+    j       rp_clamp
+rp_not_S:
+    addi    $r2, $r0, 4
+    bne     $r12, $r2, rp_not_Z
+    addi    $r2, $r0, 2
+    bne     $r14, $r2, rp_clamp
+    addi    $r14, $r0, 0
+    j       rp_clamp
+rp_not_Z:
+    # T(2), J(5), L(6): 4 rotations (mod 4)
     addi    $r2, $r0, 4
     bne     $r14, $r2, rp_clamp
     addi    $r14, $r0, 0
@@ -4287,3 +4328,131 @@ lock_L_rot3:
     add     $r4, $r26, $r4
     sw      $r13, 0($r4)
     jr      $r31
+
+##############################################################
+# CLEAR_LINES
+# After a piece locks, scan locked_board rows 19->0.
+# For each full row: shift all rows above down by one,
+# clear row 0, increment score, display on LEDs.
+# Re-checks same row index after shift (shifted row may be full too).
+#
+# Memory: score at addr 662, LED MMIO at 4097.
+# Scratch: $r17=scan_row (preserved across inner calls),
+#          $r2,$r3=temp for score/LED writes.
+##############################################################
+clear_lines:
+    addi    $r29, $r29, -1
+    sw      $r31, 0($r29)
+
+    addi    $r17, $r0, 19         # start at bottom row
+
+cl_outer:
+    jal     check_row_full        # $r17=row -> $r8=1 if full
+    bne     $r8, $r0, cl_full
+
+    # not full: move up one row
+    bne     $r17, $r0, cl_dec
+    j       cl_done               # finished row 0, done
+cl_dec:
+    addi    $r17, $r17, -1
+    j       cl_outer
+
+cl_full:
+    jal     shift_rows_down       # shift rows 0..$r17-1 down into $r17, clear row 0
+
+    # score++
+    addi    $r2, $r0, 662
+    lw      $r3, 0($r2)
+    addi    $r3, $r3, 1
+    sw      $r3, 0($r2)
+
+    # display score on LEDs
+    addi    $r2, $r0, 4097
+    sw      $r3, 0($r2)
+
+    # recheck same row (shifted content may also be full)
+    bne     $r17, $r0, cl_outer
+    j       cl_done               # row 0 was the cleared one, done
+
+cl_done:
+    lw      $r31, 0($r29)
+    addi    $r29, $r29, 1
+    jr      $r31
+
+##############################################################
+# CHECK_ROW_FULL -- leaf
+# Input:  $r17 = row index to check
+# Output: $r8  = 1 if all 10 cells non-zero, 0 otherwise
+# Scratch: $r4,$r5 (addr compute), $r6 (cell value), $r9 (col counter)
+##############################################################
+check_row_full:
+    sll     $r4, $r17, 3
+    sll     $r5, $r17, 1
+    add     $r4, $r4, $r5         # row*10
+    add     $r4, $r26, $r4        # &locked_board[row][0]
+    addi    $r8, $r0, 1           # assume full
+    addi    $r9, $r0, 10          # 10 cells per row
+crf_loop:
+    bne     $r9, $r0, crf_cell
+    jr      $r31                  # all 10 non-zero: full
+crf_cell:
+    lw      $r6, 0($r4)
+    bne     $r6, $r0, crf_ok
+    addi    $r8, $r0, 0           # found empty cell: not full
+    jr      $r31
+crf_ok:
+    addi    $r4, $r4, 1
+    addi    $r9, $r9, -1
+    j       crf_loop
+
+##############################################################
+# SHIFT_ROWS_DOWN -- leaf
+# Input:  $r17 = index of the full (cleared) row
+# Effect: for dest=$r17 downto 1: locked[dest] <- locked[dest-1]
+#         then locked[0] <- zeros
+# Scratch: $r14 (dest_row), $r15 (src_row),
+#          $r4 (dest ptr), $r5 (temp), $r6 (src ptr),
+#          $r9 (col count), $r16 (cell value)
+##############################################################
+shift_rows_down:
+    addi    $r14, $r17, 0         # dest_row = cleared_row
+
+srd_outer:
+    bne     $r14, $r0, srd_copy
+
+    # dest_row == 0: zero out row 0 and return
+    add     $r4, $r26, $r0        # &locked_board[0][0]
+    addi    $r9, $r0, 10
+srd_clr:
+    bne     $r9, $r0, srd_clr_cell
+    jr      $r31
+srd_clr_cell:
+    sw      $r0, 0($r4)
+    addi    $r4, $r4, 1
+    addi    $r9, $r9, -1
+    j       srd_clr
+
+srd_copy:
+    addi    $r15, $r14, -1        # src_row = dest_row - 1
+    # dest ptr: &locked_board[dest_row][0]
+    sll     $r4, $r14, 3
+    sll     $r5, $r14, 1
+    add     $r4, $r4, $r5
+    add     $r4, $r26, $r4
+    # src ptr: &locked_board[src_row][0]
+    sll     $r6, $r15, 3
+    sll     $r5, $r15, 1
+    add     $r6, $r6, $r5
+    add     $r6, $r26, $r6
+    addi    $r9, $r0, 10
+srd_copy_loop:
+    bne     $r9, $r0, srd_copy_cell
+    addi    $r14, $r14, -1        # dest_row--
+    j       srd_outer
+srd_copy_cell:
+    lw      $r16, 0($r6)
+    sw      $r16, 0($r4)
+    addi    $r4, $r4, 1
+    addi    $r6, $r6, 1
+    addi    $r9, $r9, -1
+    j       srd_copy_loop

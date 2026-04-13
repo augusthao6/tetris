@@ -32,6 +32,7 @@ module Wrapper (
     input BTNL,                    // move left
     input BTNR,                    // move right
     input BTNC,                    // rotate (center button)
+    input BTND,                     //soft drop
     input [15:0] SW,
     output reg [15:0] LED,
 
@@ -87,18 +88,19 @@ module Wrapper (
     end
 
     // ---- Button debounce (2-stage synchronizer) ----
-    reg [1:0] btnL_sync, btnR_sync, btnC_sync;
+    reg [1:0] btnL_sync, btnR_sync, btnC_sync, btnD_sync;
     always @(posedge clock) begin
         btnL_sync <= {btnL_sync[0], BTNL};
         btnR_sync <= {btnR_sync[0], BTNR};
         btnC_sync <= {btnC_sync[0], BTNC};
+        btnD_sync <= {btnD_sync[0], BTND};
     end
     wire btn_left   = btnL_sync[1];
     wire btn_right  = btnR_sync[1];
     wire btn_rotate = btnC_sync[1];
-
-    // bit 0 = left, bit 1 = right, bit 2 = rotate
-    wire [31:0] btn_state = {29'b0, btn_rotate, btn_right, btn_left};
+    wire btn_down = btnD_sync[1];
+    // bit 0 = left, bit 1 = right, bit 2 = rotate, bit 3 = soft drop
+    wire [31:0] btn_state = {28'b0,btn_down, btn_rotate, btn_right, btn_left};
 
     assign q_dmem = io_read     ? frame_counter :
                     io_btn_read ? btn_state      : memDataOut;

@@ -102,6 +102,6 @@ module VGAController(
     wire on_grid = (col_count == 0) || (row_count == 0);
     wire [11:0] finalColor = on_grid ? 12'h333 : piece_color;
 
-    assign {VGA_R, VGA_G, VGA_B} = active_d ? finalColor : 12'd0;
+    assign {VGA_R, VGA_G, VGA_B} = (active_d && !reset) ? finalColor : 12'd0;
 
 endmodule
