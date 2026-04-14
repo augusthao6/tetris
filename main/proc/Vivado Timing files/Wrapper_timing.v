@@ -88,22 +88,33 @@ module Wrapper (
     end
 
     // ---- Button debounce (2-stage synchronizer) ----
-    reg [1:0] btnL_sync, btnR_sync, btnC_sync, btnD_sync;
+    reg [1:0] btnL_sync, btnR_sync, btnC_sync, btnD_sync, btnU_sync;
     always @(posedge clock) begin
         btnL_sync <= {btnL_sync[0], BTNL};
         btnR_sync <= {btnR_sync[0], BTNR};
         btnC_sync <= {btnC_sync[0], BTNC};
         btnD_sync <= {btnD_sync[0], BTND};
+        btnU_sync <= {btnU_sync[0], BTNU};
     end
     wire btn_left   = btnL_sync[1];
     wire btn_right  = btnR_sync[1];
     wire btn_rotate = btnC_sync[1];
-    wire btn_down = btnD_sync[1];
-    // bit 0 = left, bit 1 = right, bit 2 = rotate, bit 3 = soft drop
-    wire [31:0] btn_state = {28'b0,btn_down, btn_rotate, btn_right, btn_left};
+    wire btn_down   = btnD_sync[1];
+    wire btn_up     = btnU_sync[1];
+    // bit0=left  bit1=right  bit2=rotate  bit3=soft-drop  bit4=reset(BTNU)
+    wire [31:0] btn_state = {27'b0, btn_up, btn_down, btn_rotate, btn_right, btn_left};
 
     assign q_dmem = io_read     ? frame_counter :
                     io_btn_read ? btn_state      : memDataOut;
+
+    // ---- Snoop CPU writes to score (addr 662) ----
+    reg [31:0] score_reg;
+    always @(posedge clock) begin
+        if (reset)
+            score_reg <= 0;
+        else if (mwe && (memAddr == 32'd662))
+            score_reg <= memDataIn;
+    end
 
     // ================= Program =================
     localparam INSTR_FILE = "tetris";
@@ -161,7 +172,8 @@ module Wrapper (
         .VGA_G(VGA_G),
         .VGA_B(VGA_B),
         .fb_addr(fb_addr),
-        .fb_data(fb_data)
+        .fb_data(fb_data),
+        .score(score_reg)
     );
 
 endmodule

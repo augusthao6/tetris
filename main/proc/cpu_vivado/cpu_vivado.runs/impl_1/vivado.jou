@@ -2,11 +2,11 @@
 # Vivado v2021.1 (64-bit)
 # SW Build 3247384 on Thu Jun 10 19:36:33 MDT 2021
 # IP Build 3246043 on Fri Jun 11 00:30:35 MDT 2021
-# Start of session at: Mon Apr 13 14:09:37 2026
-# Process ID: 10644
-# Current directory: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1
+# Start of session at: Tue Apr 14 16:53:09 2026
+# Process ID: 9024
+# Current directory: C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1
 # Command line: vivado.exe -log Wrapper.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source Wrapper.tcl -notrace
-# Log file: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1/Wrapper.vdi
-# Journal file: C:/Users/ena17/Desktop/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1\vivado.jou
+# Log file: C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1/Wrapper.vdi
+# Journal file: C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.runs/impl_1\vivado.jou
 #-----------------------------------------------------------
 source Wrapper.tcl -notrace

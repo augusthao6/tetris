@@ -11,6 +11,7 @@
 #   460-659  : locked_board (200 words, same layout as framebuffer)
 #   660      : piece_rot   (rotation state, 0-3)
 #   661      : btn_prev    (previous button state for edge detection)
+#   663      : lfsr_state  (7-bit LFSR for random piece selection, 1-127)
 #
 # Piece cells (dr, dc) by rotation:
 #   I(0) rot0: (0,0)(0,1)(0,2)(0,3)  1-wide×4  color=1
@@ -81,7 +82,20 @@ init_piece:
     sw      $r2, 0($r22)          # piece_col = 3
     addi    $r2, $r0, 30
     sw      $r2, 0($r23)          # gravity_timer = 30
-    sw      $r0, 0($r25)          # piece_type = 0 (I-piece)
+
+    # Seed 7-bit LFSR from MMIO frame counter (varies by when reset is pressed)
+    lw      $r2, 0($r24)          # read frame counter
+    addi    $r3, $r0, 127
+    and     $r2, $r2, $r3         # keep low 7 bits
+    bne     $r2, $r0, ip_seed_ok
+    addi    $r2, $r0, 1           # LFSR state must never be 0
+ip_seed_ok:
+    addi    $r3, $r0, 663
+    sw      $r2, 0($r3)           # lfsr_state = seed
+
+    jal     lfsr_get_piece        # pick first piece, returns type in $r2
+    sw      $r2, 0($r25)          # piece_type = result
+
     sw      $r0, 0($r27)          # piece_rot = 0
     addi    $r2, $r0, 661
     sw      $r0, 0($r2)           # btn_prev = 0
@@ -571,7 +585,13 @@ cgo_halt:
     addi    $r3, $r0, -1          # 0xFFFF — all LEDs on
     sw      $r3, 0($r2)           # light up LEDs
 cgo_loop2:
+    lw      $r2, 0($r28)          # read buttons MMIO
+    addi    $r3, $r0, 16          # bit 4 = reset button
+    and     $r2, $r2, $r3
+    bne     $r2, $r0, cgo_restart
     j       cgo_loop2             # GAME OVER — freeze
+cgo_restart:
+    j       start
 
 ##############################################################
 # LOCK_PIECE — stamp active piece into locked_board
@@ -823,23 +843,76 @@ lock_L:
     jr      $r31
 
 ##############################################################
-# SPAWN_PIECE — cycle piece_type mod 7, reset position/timer
-# Leaf function.
+# SPAWN_PIECE — pick next piece via LFSR, reset position/timer
 ##############################################################
 spawn_piece:
-    lw      $r12, 0($r25)
-    addi    $r12, $r12, 1
-    addi    $r2, $r0, 7
-    bne     $r12, $r2, sp_no_wrap
-    addi    $r12, $r0, 0
-sp_no_wrap:
-    sw      $r12, 0($r25)
+    addi    $r29, $r29, -1
+    sw      $r31, 0($r29)
+
+    jal     lfsr_get_piece        # returns piece type (0-6) in $r2
+    sw      $r2, 0($r25)          # piece_type = result
     sw      $r0, 0($r21)          # piece_row = 0
     addi    $r2, $r0, 3
     sw      $r2, 0($r22)          # piece_col = 3
     addi    $r2, $r0, 30
     sw      $r2, 0($r23)          # gravity_timer = 30
     sw      $r0, 0($r27)          # piece_rot = 0
+
+    lw      $r31, 0($r29)
+    addi    $r29, $r29, 1
+    jr      $r31
+
+##############################################################
+# LFSR_GET_PIECE — advance 7-bit Fibonacci LFSR, return 0-6
+#
+# LFSR polynomial: x^7 + x^6 + 1  (taps at bits 6 and 5)
+# feedback = bit[6] XOR bit[5]
+# new_state = ((state << 1) & 0x7F) | feedback
+# piece_type = new_state % 7  (repeated subtraction, max 18 iters)
+#
+# Reads/writes lfsr_state at addr 663.
+# Returns piece type in $r2.
+# Leaf function. Uses $r4,$r5,$r6,$r7.
+##############################################################
+lfsr_get_piece:
+    addi    $r5, $r0, 663
+    lw      $r2, 0($r5)           # $r2 = current lfsr_state
+
+    # bit6 = (state >> 6) & 1
+    sra     $r4, $r2, 6
+    addi    $r6, $r0, 1
+    and     $r4, $r4, $r6         # $r4 = bit6
+
+    # bit5 = (state >> 5) & 1
+    sra     $r7, $r2, 5
+    and     $r7, $r7, $r6         # $r7 = bit5
+
+    # feedback = bit6 XOR bit5  =  (bit6+bit5) - 2*(bit6 AND bit5)
+    add     $r6, $r4, $r7         # bit6 + bit5
+    and     $r4, $r4, $r7         # bit6 AND bit5
+    sll     $r4, $r4, 1           # 2*(bit6 AND bit5)
+    sub     $r6, $r6, $r4         # $r6 = feedback
+
+    # new_state = ((state << 1) & 0x7F) | feedback
+    sll     $r2, $r2, 1
+    addi    $r4, $r0, 127
+    and     $r2, $r2, $r4         # & 0x7F
+    or      $r2, $r2, $r6         # | feedback
+
+    # guard: LFSR state must never be 0
+    bne     $r2, $r0, lgp_nz
+    addi    $r2, $r0, 1
+lgp_nz:
+    addi    $r4, $r0, 663
+    sw      $r2, 0($r4)           # save new lfsr_state
+
+    # piece_type = state % 7  (state is 1-127, so at most 18 subtracts)
+    addi    $r4, $r0, 7
+lgp_mod7:
+    blt     $r2, $r4, lgp_done
+    sub     $r2, $r2, $r4
+    j       lgp_mod7
+lgp_done:
     jr      $r31
 
 ##############################################################
@@ -4345,6 +4418,7 @@ clear_lines:
     sw      $r31, 0($r29)
 
     addi    $r17, $r0, 19         # start at bottom row
+    addi    $r18, $r0, 0          # lines_this_lock = 0
 
 cl_outer:
     jal     check_row_full        # $r17=row -> $r8=1 if full
@@ -4352,27 +4426,45 @@ cl_outer:
 
     # not full: move up one row
     bne     $r17, $r0, cl_dec
-    j       cl_done               # finished row 0, done
+    j       cl_score              # finished row 0, done
 cl_dec:
     addi    $r17, $r17, -1
     j       cl_outer
 
 cl_full:
     jal     shift_rows_down       # shift rows 0..$r17-1 down into $r17, clear row 0
-
-    # score++
-    addi    $r2, $r0, 662
-    lw      $r3, 0($r2)
-    addi    $r3, $r3, 1
-    sw      $r3, 0($r2)
-
-    # display score on LEDs
-    addi    $r2, $r0, 4097
-    sw      $r3, 0($r2)
-
+    addi    $r18, $r18, 1         # lines_this_lock++
     # recheck same row (shifted content may also be full)
     bne     $r17, $r0, cl_outer
-    j       cl_done               # row 0 was the cleared one, done
+    j       cl_score              # row 0 was the cleared one
+
+cl_score:
+    # Real Tetris scoring: 0→+0  1→+100  2→+300  3→+500  4→+800
+    bne     $r18, $r0, cl_s1
+    j       cl_done               # 0 lines cleared this lock
+cl_s1:
+    addi    $r2, $r0, 662
+    lw      $r3, 0($r2)           # $r3 = current score
+    addi    $r4, $r0, 1
+    bne     $r18, $r4, cl_s2
+    addi    $r3, $r3, 100         # single: +100
+    j       cl_score_upd
+cl_s2:
+    addi    $r4, $r0, 2
+    bne     $r18, $r4, cl_s3
+    addi    $r3, $r3, 300         # double: +300
+    j       cl_score_upd
+cl_s3:
+    addi    $r4, $r0, 3
+    bne     $r18, $r4, cl_s4
+    addi    $r3, $r3, 500         # triple: +500
+    j       cl_score_upd
+cl_s4:
+    addi    $r3, $r3, 800         # Tetris: +800
+cl_score_upd:
+    sw      $r3, 0($r2)           # save score to addr 662
+    addi    $r2, $r0, 4097
+    sw      $r3, 0($r2)           # update LEDs
 
 cl_done:
     lw      $r31, 0($r29)
