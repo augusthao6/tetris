@@ -1,4 +1,4 @@
-set_property SRC_FILE_INFO {cfile:{C:/Users/ah670/Documents/ECE350/tetris/main/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc} rfile:{../../../../Vivado Timing files/Nexys-A7-100T-Master.xdc} id:1} [current_design]
+set_property SRC_FILE_INFO {cfile:{C:/Users/ah670/Documents/tetris/main/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc} rfile:{../../../../Vivado Timing files/Nexys-A7-100T-Master.xdc} id:1} [current_design]
 set_property src_info {type:XDC file:1 line:7 export:INPUT save:INPUT read:READ} [current_design]
 set_property -dict {PACKAGE_PIN E3 IOSTANDARD LVCMOS33} [get_ports clk_100mhz]
 set_property src_info {type:XDC file:1 line:14 export:INPUT save:INPUT read:READ} [current_design]

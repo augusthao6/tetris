@@ -865,46 +865,23 @@ spawn_piece:
 ##############################################################
 # LFSR_GET_PIECE — advance 7-bit Fibonacci LFSR, return 0-6
 #
-# LFSR polynomial: x^7 + x^6 + 1  (taps at bits 6 and 5)
-# feedback = bit[6] XOR bit[5]
-# new_state = ((state << 1) & 0x7F) | feedback
-# piece_type = new_state % 7  (repeated subtraction, max 18 iters)
+# Uses the custom `lfsr $rd, $rs` instruction (aluop 01000):
+#   polynomial x^7+x^6+1, feedback = bit[6] XOR bit[5]
+#   result = { state[5:0], feedback }
+# The ~12-instruction XOR/shift sequence is replaced by one cycle.
 #
 # Reads/writes lfsr_state at addr 663.
-# Returns piece type in $r2.
-# Leaf function. Uses $r4,$r5,$r6,$r7.
+# Returns piece type (0-6) in $r2.
+# Leaf function. Uses $r4,$r5.
 ##############################################################
 lfsr_get_piece:
     addi    $r5, $r0, 663
     lw      $r2, 0($r5)           # $r2 = current lfsr_state
 
-    # bit6 = (state >> 6) & 1
-    sra     $r4, $r2, 6
-    addi    $r6, $r0, 1
-    and     $r4, $r4, $r6         # $r4 = bit6
+    lfsr    $r2, $r2, $r0         # one-cycle LFSR step (custom instruction)
+    # hardware guard (state==0 → 1) already handled in processor.v
 
-    # bit5 = (state >> 5) & 1
-    sra     $r7, $r2, 5
-    and     $r7, $r7, $r6         # $r7 = bit5
-
-    # feedback = bit6 XOR bit5  =  (bit6+bit5) - 2*(bit6 AND bit5)
-    add     $r6, $r4, $r7         # bit6 + bit5
-    and     $r4, $r4, $r7         # bit6 AND bit5
-    sll     $r4, $r4, 1           # 2*(bit6 AND bit5)
-    sub     $r6, $r6, $r4         # $r6 = feedback
-
-    # new_state = ((state << 1) & 0x7F) | feedback
-    sll     $r2, $r2, 1
-    addi    $r4, $r0, 127
-    and     $r2, $r2, $r4         # & 0x7F
-    or      $r2, $r2, $r6         # | feedback
-
-    # guard: LFSR state must never be 0
-    bne     $r2, $r0, lgp_nz
-    addi    $r2, $r0, 1
-lgp_nz:
-    addi    $r4, $r0, 663
-    sw      $r2, 0($r4)           # save new lfsr_state
+    sw      $r2, 0($r5)           # save new lfsr_state
 
     # piece_type = state % 7  (state is 1-127, so at most 18 subtracts)
     addi    $r4, $r0, 7

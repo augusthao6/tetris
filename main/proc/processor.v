@@ -146,15 +146,23 @@ module processor(
     assign dx_bex = (dx_opcode == 5'b10110);
     assign dx_setx = (dx_opcode == 5'b10101);
 
-    wire add, sub, and32, or32, sll, sra, mul, div;
-    assign add = dx_rtype && (dx_aluop == 5'b00000);
-    assign sub = dx_rtype && (dx_aluop == 5'b00001);
-    assign and32 = dx_rtype && (dx_aluop == 5'b00010);
-    assign or32 = dx_rtype && (dx_aluop == 5'b00011);
-    assign sll = dx_rtype && (dx_aluop == 5'b00100);
-    assign sra = dx_rtype && (dx_aluop == 5'b00101);
-    assign mul = dx_rtype && (dx_aluop == 5'b00110);
-    assign div = dx_rtype && (dx_aluop == 5'b00111);
+    wire add, sub, and32, or32, sll, sra, mul, div, dx_lfsr;
+    assign add     = dx_rtype && (dx_aluop == 5'b00000);
+    assign sub     = dx_rtype && (dx_aluop == 5'b00001);
+    assign and32   = dx_rtype && (dx_aluop == 5'b00010);
+    assign or32    = dx_rtype && (dx_aluop == 5'b00011);
+    assign sll     = dx_rtype && (dx_aluop == 5'b00100);
+    assign sra     = dx_rtype && (dx_aluop == 5'b00101);
+    assign mul     = dx_rtype && (dx_aluop == 5'b00110);
+    assign div     = dx_rtype && (dx_aluop == 5'b00111);
+    // Custom: 7-bit Fibonacci LFSR step (aluop 01000)
+    // Polynomial x^7+x^6+1: feedback = bit[6] XOR bit[5]
+    // new_state = { state[5:0], feedback }  (7-bit shift left + insert feedback)
+    assign dx_lfsr = dx_rtype && (dx_aluop == 5'b01000);
+    wire lfsr_feedback = bypass_readDataA[6] ^ bypass_readDataA[5];
+    wire [31:0] lfsr_raw = {25'b0, bypass_readDataA[5:0], lfsr_feedback};
+    // Guard: LFSR state must never be zero; if so, reset to 1
+    wire [31:0] lfsr_result = (lfsr_raw == 32'b0) ? 32'd1 : lfsr_raw;
     wire dx_multdiv;
     assign dx_multdiv = mul || div;
 
@@ -233,7 +241,12 @@ module processor(
     //determine write result and register destination
     wire [31:0] dx_writedata;
     wire [4:0] dx_writereg;
-    assign dx_writedata = dx_setx ? {5'b0, dx_target} : overflow ? rstatus_val : dx_jal ? dx_pc_plus1 : (doing_multdiv && multdiv_ready) ? multdiv_out : alu_out;
+    assign dx_writedata = dx_lfsr                      ? lfsr_result        :
+                          dx_setx                      ? {5'b0, dx_target}  :
+                          overflow                     ? rstatus_val        :
+                          dx_jal                       ? dx_pc_plus1        :
+                          (doing_multdiv && multdiv_ready) ? multdiv_out    :
+                                                         alu_out;
     assign dx_writereg = dx_setx ? 5'd30 :
                      overflow ? 5'd30 :
                      dx_jal ? 5'd31 :
