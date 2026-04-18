@@ -1,271 +1,307 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="impl_1" LaunchPart="xc7a100tcsg324-1" LaunchTime="1776385591">
+<GenRun Id="impl_1" LaunchPart="xc7a100tcsg324-1" LaunchTime="1776481117">
   <File Type="ROUTE-PWR" Name="Wrapper_power_routed.rpt"/>
   <File Type="PA-TCL" Name="Wrapper.tcl"/>
-  <File Type="BITSTR-MMI" Name="Wrapper.mmi"/>
-  <File Type="OPT-METHODOLOGY-DRC" Name="Wrapper_methodology_drc_opted.rpt"/>
-  <File Type="INIT-TIMING" Name="Wrapper_timing_summary_init.rpt"/>
   <File Type="ROUTE-PWR-SUM" Name="Wrapper_power_summary_routed.pb"/>
   <File Type="REPORTS-TCL" Name="Wrapper_reports.tcl"/>
-  <File Type="OPT-TIMING" Name="Wrapper_timing_summary_opted.rpt"/>
-  <File Type="OPT-DCP" Name="Wrapper_opt.dcp"/>
+  <File Type="BITSTR-MSK" Name="Wrapper.msk"/>
+  <File Type="ROUTE-CLK" Name="Wrapper_clock_utilization_routed.rpt"/>
+  <File Type="RDI-RDI" Name="Wrapper.vdi"/>
+  <File Type="BG-BIT" Name="Wrapper.bit"/>
+  <File Type="BG-DRC" Name="Wrapper.drc"/>
+  <File Type="BG-BGN" Name="Wrapper.bgn"/>
+  <File Type="BG-BIN" Name="Wrapper.bin"/>
+  <File Type="BITSTR-RBT" Name="Wrapper.rbt"/>
+  <File Type="BITSTR-NKY" Name="Wrapper.nky"/>
+  <File Type="BITSTR-BMM" Name="Wrapper_bd.bmm"/>
+  <File Type="BITSTR-MMI" Name="Wrapper.mmi"/>
+  <File Type="ROUTE-METHODOLOGY-DRC" Name="Wrapper_methodology_drc_routed.rpt"/>
+  <File Type="BITSTR-SYSDEF" Name="Wrapper.sysdef"/>
+  <File Type="BITSTR-LTX" Name="debug_nets.ltx"/>
+  <File Type="BITSTR-LTX" Name="Wrapper.ltx"/>
+  <File Type="WBT-USG" Name="usage_statistics_webtalk.html"/>
   <File Type="OPT-DRC" Name="Wrapper_drc_opted.rpt"/>
   <File Type="OPT-HWDEF" Name="Wrapper.hwdef"/>
-  <File Type="PWROPT-DCP" Name="Wrapper_pwropt.dcp"/>
-  <File Type="PWROPT-DRC" Name="Wrapper_drc_pwropted.rpt"/>
-  <File Type="PWROPT-TIMING" Name="Wrapper_timing_summary_pwropted.rpt"/>
-  <File Type="PLACE-DCP" Name="Wrapper_placed.dcp"/>
   <File Type="PLACE-IO" Name="Wrapper_io_placed.rpt"/>
-  <File Type="PLACE-CLK" Name="Wrapper_clock_utilization_placed.rpt"/>
   <File Type="PLACE-UTIL" Name="Wrapper_utilization_placed.rpt"/>
   <File Type="PLACE-UTIL-PB" Name="Wrapper_utilization_placed.pb"/>
   <File Type="PLACE-CTRL" Name="Wrapper_control_sets_placed.rpt"/>
-  <File Type="PLACE-SIMILARITY" Name="Wrapper_incremental_reuse_placed.rpt"/>
   <File Type="PLACE-PRE-SIMILARITY" Name="Wrapper_incremental_reuse_pre_placed.rpt"/>
-  <File Type="BG-BIN" Name="Wrapper.bin"/>
-  <File Type="PLACE-TIMING" Name="Wrapper_timing_summary_placed.rpt"/>
-  <File Type="POSTPLACE-PWROPT-DCP" Name="Wrapper_postplace_pwropt.dcp"/>
-  <File Type="BITSTR-MSK" Name="Wrapper.msk"/>
-  <File Type="POSTPLACE-PWROPT-TIMING" Name="Wrapper_timing_summary_postplace_pwropted.rpt"/>
-  <File Type="PHYSOPT-DCP" Name="Wrapper_physopt.dcp"/>
-  <File Type="PHYSOPT-DRC" Name="Wrapper_drc_physopted.rpt"/>
-  <File Type="BITSTR-RBT" Name="Wrapper.rbt"/>
-  <File Type="PHYSOPT-TIMING" Name="Wrapper_timing_summary_physopted.rpt"/>
-  <File Type="ROUTE-ERROR-DCP" Name="Wrapper_routed_error.dcp"/>
-  <File Type="ROUTE-DCP" Name="Wrapper_routed.dcp"/>
-  <File Type="ROUTE-BLACKBOX-DCP" Name="Wrapper_routed_bb.dcp"/>
   <File Type="ROUTE-DRC" Name="Wrapper_drc_routed.rpt"/>
   <File Type="ROUTE-DRC-PB" Name="Wrapper_drc_routed.pb"/>
-  <File Type="ROUTE-DRC-RPX" Name="Wrapper_drc_routed.rpx"/>
-  <File Type="ROUTE-METHODOLOGY-DRC" Name="Wrapper_methodology_drc_routed.rpt"/>
-  <File Type="ROUTE-METHODOLOGY-DRC-RPX" Name="Wrapper_methodology_drc_routed.rpx"/>
-  <File Type="ROUTE-METHODOLOGY-DRC-PB" Name="Wrapper_methodology_drc_routed.pb"/>
   <File Type="ROUTE-PWR-RPX" Name="Wrapper_power_routed.rpx"/>
   <File Type="ROUTE-STATUS" Name="Wrapper_route_status.rpt"/>
   <File Type="ROUTE-STATUS-PB" Name="Wrapper_route_status.pb"/>
+  <File Type="ROUTE-DCP" Name="Wrapper_routed.dcp"/>
+  <File Type="ROUTE-ERROR-DCP" Name="Wrapper_routed_error.dcp"/>
+  <File Type="ROUTE-BLACKBOX-DCP" Name="Wrapper_routed_bb.dcp"/>
   <File Type="ROUTE-TIMINGSUMMARY" Name="Wrapper_timing_summary_routed.rpt"/>
   <File Type="ROUTE-TIMING-PB" Name="Wrapper_timing_summary_routed.pb"/>
   <File Type="ROUTE-TIMING-RPX" Name="Wrapper_timing_summary_routed.rpx"/>
-  <File Type="ROUTE-SIMILARITY" Name="Wrapper_incremental_reuse_routed.rpt"/>
-  <File Type="ROUTE-CLK" Name="Wrapper_clock_utilization_routed.rpt"/>
   <File Type="ROUTE-BUS-SKEW" Name="Wrapper_bus_skew_routed.rpt"/>
   <File Type="ROUTE-BUS-SKEW-PB" Name="Wrapper_bus_skew_routed.pb"/>
   <File Type="ROUTE-BUS-SKEW-RPX" Name="Wrapper_bus_skew_routed.rpx"/>
+  <File Type="OPT-DCP" Name="Wrapper_opt.dcp"/>
+  <File Type="PLACE-DCP" Name="Wrapper_placed.dcp"/>
+  <File Type="PWROPT-DCP" Name="Wrapper_pwropt.dcp"/>
+  <File Type="POSTPLACE-PWROPT-DCP" Name="Wrapper_postplace_pwropt.dcp"/>
+  <File Type="PHYSOPT-DCP" Name="Wrapper_physopt.dcp"/>
   <File Type="POSTROUTE-PHYSOPT-DCP" Name="Wrapper_postroute_physopt.dcp"/>
   <File Type="POSTROUTE-PHYSOPT-BLACKBOX-DCP" Name="Wrapper_postroute_physopt_bb.dcp"/>
-  <File Type="POSTROUTE-PHYSOPT-TIMING" Name="Wrapper_timing_summary_postroute_physopted.rpt"/>
-  <File Type="POSTROUTE-PHYSOPT-TIMING-PB" Name="Wrapper_timing_summary_postroute_physopted.pb"/>
-  <File Type="POSTROUTE-PHYSOPT-TIMING-RPX" Name="Wrapper_timing_summary_postroute_physopted.rpx"/>
-  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW" Name="Wrapper_bus_skew_postroute_physopted.rpt"/>
-  <File Type="BG-BIT" Name="Wrapper.bit"/>
-  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW-PB" Name="Wrapper_bus_skew_postroute_physopted.pb"/>
-  <File Type="POSTROUTE-PHYSOPT-BUS-SKEW-RPX" Name="Wrapper_bus_skew_postroute_physopted.rpx"/>
-  <File Type="BITSTR-NKY" Name="Wrapper.nky"/>
-  <File Type="BITSTR-BMM" Name="Wrapper_bd.bmm"/>
+  <File Type="ROUTE-METHODOLOGY-DRC-PB" Name="Wrapper_methodology_drc_routed.pb"/>
+  <File Type="ROUTE-DRC-RPX" Name="Wrapper_drc_routed.rpx"/>
+  <File Type="ROUTE-METHODOLOGY-DRC-RPX" Name="Wrapper_methodology_drc_routed.rpx"/>
   <File Type="PDI-FILE" Name="Wrapper.pdi"/>
   <File Type="RCFI_FILE" Name="Wrapper.rcfi"/>
   <File Type="CFI_FILE" Name="Wrapper.cfi"/>
   <File Type="RNPI_FILE" Name="Wrapper.rnpi"/>
   <File Type="NPI_FILE" Name="Wrapper.npi"/>
   <File Type="RBD_FILE" Name="Wrapper.rbd"/>
-  <File Type="BITSTR-LTX" Name="debug_nets.ltx"/>
-  <File Type="BITSTR-LTX" Name="Wrapper.ltx"/>
-  <File Type="BITSTR-SYSDEF" Name="Wrapper.sysdef"/>
-  <File Type="BG-BGN" Name="Wrapper.bgn"/>
-  <File Type="BG-DRC" Name="Wrapper.drc"/>
-  <File Type="RDI-RDI" Name="Wrapper.vdi"/>
-  <File Type="WBT-USG" Name="usage_statistics_webtalk.html"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
     <Filter Type="Srcs"/>
-    <File Path="$PPRDIR/../RAM_dual.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/RAM_dual.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../RAM_dual.v"/>
+        <Attr Name="ImportTime" Val="1776196717"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../ROM.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/ROM.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../ROM.v"/>
+        <Attr Name="ImportTime" Val="1776196717"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../lab7-8_kit/VGAController.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/lab7-8_kit/VGAController.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../lab7-8_kit/VGAController.v"/>
+        <Attr Name="ImportTime" Val="1776199689"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../lab7-8_kit/VGATimingGenerator.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/lab7-8_kit/VGATimingGenerator.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../lab7-8_kit/VGATimingGenerator.v"/>
+        <Attr Name="ImportTime" Val="1776196718"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/alu.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/alu.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/alu.v"/>
+        <Attr Name="ImportTime" Val="1776196905"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/and32.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/and32.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/and32.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/cla32.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/cla32.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/cla32.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/cla8.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/cla8.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/cla8.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/dffe_ref.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/dffe_ref.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/dffe_ref.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/multdiv.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/multdiv.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/multdiv.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/or32.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/or32.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/or32.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../processor.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/processor.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../processor.v"/>
+        <Attr Name="ImportTime" Val="1776441451"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../regfile/regfile.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/regfile/regfile.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../regfile/regfile.v"/>
+        <Attr Name="ImportTime" Val="1776196932"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/register32.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/register32.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/register32.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/sll.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/sll.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/sll.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/sra.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/sra.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/sra.v"/>
+        <Attr Name="ImportTime" Val="1776196906"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../regfile/tristate.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/regfile/tristate.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../regfile/tristate.v"/>
+        <Attr Name="ImportTime" Val="1776196932"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../Vivado Timing files/Wrapper_timing.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/Vivado Timing files/Wrapper_timing.v">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../Vivado Timing files/Wrapper_timing.v"/>
+        <Attr Name="ImportTime" Val="1776199701"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../lab7-8_kit/RAM.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/lab7-8_kit/RAM.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../lab7-8_kit/RAM.v"/>
+        <Attr Name="ImportTime" Val="1776196718"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../alu/alu_tb.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/alu/alu_tb.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../alu/alu_tb.v"/>
+        <Attr Name="ImportTime" Val="1776196905"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/boothtrace_tb.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/boothtrace_tb.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/boothtrace_tb.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/divtrace_tb.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/divtrace_tb.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/divtrace_tb.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../multdiv/multdiv_tb.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/multdiv/multdiv_tb.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../multdiv/multdiv_tb.v"/>
+        <Attr Name="ImportTime" Val="1776196918"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../regfile/regfile_tb.v">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/regfile/regfile_tb.v">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../regfile/regfile_tb.v"/>
+        <Attr Name="ImportTime" Val="1776196932"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../lab7-8_kit/Ps2Interface.vhd">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/lab7-8_kit/Ps2Interface.vhd">
       <FileInfo>
         <Attr Name="AutoDisabled" Val="1"/>
+        <Attr Name="ImportPath" Val="$PPRDIR/../lab7-8_kit/Ps2Interface.vhd"/>
+        <Attr Name="ImportTime" Val="1776196718"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../lab7-8_kit/colors.mem">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/lab7-8_kit/colors.mem">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../lab7-8_kit/colors.mem"/>
+        <Attr Name="ImportTime" Val="1776197591"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-    <File Path="$PPRDIR/../../../assembler-python-version/tetris.mem">
+    <File Path="$PSRCDIR/sources_1/imports/tetris/assembler-python-version/tetris.mem">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../../../assembler-python-version/tetris.mem"/>
+        <Attr Name="ImportTime" Val="1776441451"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
@@ -278,8 +314,10 @@
   </FileSet>
   <FileSet Name="constrs_in" Type="Constrs" RelSrcDir="$PSRCDIR/constrs_1">
     <Filter Type="Constrs"/>
-    <File Path="$PPRDIR/../Vivado Timing files/Nexys-A7-100T-Master.xdc">
+    <File Path="$PSRCDIR/constrs_1/imports/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc">
       <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../Vivado Timing files/Nexys-A7-100T-Master.xdc"/>
+        <Attr Name="ImportTime" Val="1776475287"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
       </FileInfo>
@@ -305,6 +343,7 @@
     <Step Id="route_design"/>
     <Step Id="post_route_phys_opt_design"/>
     <Step Id="write_bitstream"/>
+    <Step Id="write_device_image"/>
   </Strategy>
   <BlockFileSet Type="BlockSrcs" Name="clk_wiz_0"/>
 </GenRun>

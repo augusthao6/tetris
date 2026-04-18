@@ -89,8 +89,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports vSync]
 #set_property IOSTANDARD LVCMOS33 [get_ports ps2_data]
 
 # Buttons
-set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports { BTNU }]; #IO_L4N_T0_D05_14 Sch=btnu
-set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { BTNL }]; #IO_L12P_T1_MRCC_14 Sch=btnl
-set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { BTNR }]; #IO_L10N_T1_D15_14 Sch=btnr
-set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { BTND }]; #IO_L9N_T1_DQS_D13_14 Sch=btnd
-set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports { BTNC }]; 
+set_property -dict { PACKAGE_PIN C17   IOSTANDARD LVCMOS33 PULLDOWN TRUE } [get_ports { BTNU }]; # JA1 - reset
+set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 PULLDOWN TRUE } [get_ports { BTNL }]; # JA2 - left
+set_property -dict { PACKAGE_PIN E18   IOSTANDARD LVCMOS33 PULLDOWN TRUE } [get_ports { BTNR }]; # JA3 - right
+set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 PULLDOWN TRUE } [get_ports { BTND }]; # JA4 - fast drop
+set_property -dict { PACKAGE_PIN D17   IOSTANDARD LVCMOS33 PULLDOWN TRUE } [get_ports { BTNC }]; # JA7 - rotate button

@@ -4,7 +4,7 @@
 
 set TIME_start [clock seconds] 
 namespace eval ::optrace {
-  variable script "C:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.runs/synth_1/Wrapper.tcl"
+  variable script "C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.runs/synth_1/Wrapper.tcl"
   variable category "vivado_synth"
 }
 
@@ -72,6 +72,7 @@ proc create_report { reportName command } {
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param chipscope.maxJobs 3
 set_param xicom.use_bs_reader 1
+set_msg_config -id {Common 17-41} -limit 10000000
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7a100tcsg324-1
 
@@ -79,43 +80,43 @@ set_param project.singleFileAddWarning.threshold 0
 set_param project.compositeFile.enableAutoGeneration 0
 set_param synth.vivado.isSynthRun true
 set_msg_config -source 4 -id {IP_Flow 19-2162} -severity warning -new_severity info
-set_property webtalk.parent_dir C:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.cache/wt [current_project]
-set_property parent.project_path C:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.xpr [current_project]
+set_property webtalk.parent_dir C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.cache/wt [current_project]
+set_property parent.project_path C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.xpr [current_project]
 set_property XPM_LIBRARIES XPM_CDC [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
-set_property ip_output_repo c:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.cache/ip [current_project]
+set_property ip_output_repo c:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_mem {
-  C:/Users/ah670/Documents/tetris/main/proc/lab7-8_kit/colors.mem
-  C:/Users/ah670/Documents/tetris/assembler-python-version/tetris.mem
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/lab7-8_kit/colors.mem
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/assembler-python-version/tetris.mem
 }
 read_verilog -library xil_defaultlib {
-  C:/Users/ah670/Documents/tetris/main/proc/RAM_dual.v
-  C:/Users/ah670/Documents/tetris/main/proc/ROM.v
-  C:/Users/ah670/Documents/tetris/main/proc/lab7-8_kit/VGAController.v
-  C:/Users/ah670/Documents/tetris/main/proc/lab7-8_kit/VGATimingGenerator.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/alu.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/and32.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/cla32.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/cla8.v
-  C:/Users/ah670/Documents/tetris/main/proc/multdiv/dffe_ref.v
-  C:/Users/ah670/Documents/tetris/main/proc/multdiv/multdiv.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/or32.v
-  C:/Users/ah670/Documents/tetris/main/proc/processor.v
-  C:/Users/ah670/Documents/tetris/main/proc/regfile/regfile.v
-  C:/Users/ah670/Documents/tetris/main/proc/multdiv/register32.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/sll.v
-  C:/Users/ah670/Documents/tetris/main/proc/alu/sra.v
-  C:/Users/ah670/Documents/tetris/main/proc/regfile/tristate.v
-  {C:/Users/ah670/Documents/tetris/main/proc/Vivado Timing files/Wrapper_timing.v}
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/RAM_dual.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/ROM.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/lab7-8_kit/VGAController.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/lab7-8_kit/VGATimingGenerator.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/alu.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/and32.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/cla32.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/cla8.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/dffe_ref.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/multdiv.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/or32.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/processor.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/regfile/regfile.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/register32.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/sll.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/sra.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/regfile/tristate.v
+  {C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/Vivado Timing files/Wrapper_timing.v}
 }
-read_ip -quiet C:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/ip/clk_wiz_0_1/clk_wiz_0.xci
-set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0_board.xdc]
-set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0.xdc]
-set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0_ooc.xdc]
+read_ip -quiet C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/ip/clk_wiz_0_1/clk_wiz_0.xci
+set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0_board.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0.xdc]
+set_property used_in_implementation false [get_files -all c:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.gen/sources_1/ip/clk_wiz_0_1/clk_wiz_0_ooc.xdc]
 
 OPTRACE "Adding files" END { }
 # Mark all dcp files as not used in implementation to prevent them from being
@@ -126,8 +127,8 @@ OPTRACE "Adding files" END { }
 foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
   set_property used_in_implementation false $dcp
 }
-read_xdc {{C:/Users/ah670/Documents/tetris/main/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc}}
-set_property used_in_implementation false [get_files {{C:/Users/ah670/Documents/tetris/main/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc}}]
+read_xdc {{C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/constrs_1/imports/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc}}
+set_property used_in_implementation false [get_files {{C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/constrs_1/imports/proc/Vivado Timing files/Nexys-A7-100T-Master.xdc}}]
 
 set_param ips.enableIPCacheLiteLoad 1
 close [open __synthesis_is_running__ w]
