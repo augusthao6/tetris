@@ -65,9 +65,22 @@ module Wrapper (
     reg [15:0] SW_Q, SW_M;  
 
     // ================= IO mapping =================
-    wire io_read     = (memAddr == 32'd4096);   // frame counter read
-    wire io_write    = (memAddr == 32'd4097);   // LED write
-    wire io_btn_read = (memAddr == 32'd4098);   // button state read
+    wire io_read      = (memAddr == 32'd4096);   // frame counter read
+    wire io_write     = (memAddr == 32'd4097);   // LED write
+    wire io_btn_read  = (memAddr == 32'd4098);   // button state read
+    wire io_fp_read   = (memAddr == 32'd4099);   // piece footprint ROM read
+    wire io_meta_read = (memAddr == 32'd4100);   // piece metadata ROM read
+    wire io_prom_write = mwe && (io_fp_read || io_meta_read); // SW to 4099 or 4100
+
+    // ---- Piece footprint + metadata ROM ----
+    wire [31:0] prom_footprint, prom_metadata;
+    piece_rom PROM (
+        .clk      (clock),
+        .wEn      (io_prom_write),
+        .query_in (memDataIn[4:0]),
+        .footprint(prom_footprint),
+        .metadata (prom_metadata)
+    );
 
     always @(negedge clock) begin
         SW_M <= SW;
@@ -104,8 +117,11 @@ module Wrapper (
     // bit0=left  bit1=right  bit2=rotate  bit3=soft-drop  bit4=reset(BTNU)
     wire [31:0] btn_state = {27'b0, btn_up, btn_down, btn_rotate, btn_right, btn_left};
 
-    assign q_dmem = io_read     ? frame_counter :
-                    io_btn_read ? btn_state      : memDataOut;
+    assign q_dmem = io_read      ? frame_counter  :
+                    io_btn_read  ? btn_state      :
+                    io_fp_read   ? prom_footprint :
+                    io_meta_read ? prom_metadata  :
+                                   memDataOut;
 
     // ---- Snoop CPU writes to score (addr 662) ----
     reg [31:0] score_reg;
@@ -151,7 +167,7 @@ module Wrapper (
     // ================= RAM =================
     RAM_dual ProcMem(
         .clk(clock),
-        .wEn(mwe && !io_write),
+        .wEn(mwe && !io_write && !io_prom_write),
         .addr_a(memAddr[11:0]),
         .dataIn_a(memDataIn),
         .dataOut_a(memDataOut),

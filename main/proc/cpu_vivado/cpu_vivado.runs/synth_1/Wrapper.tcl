@@ -72,7 +72,6 @@ proc create_report { reportName command } {
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param chipscope.maxJobs 3
 set_param xicom.use_bs_reader 1
-set_msg_config -id {Common 17-41} -limit 10000000
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7a100tcsg324-1
 
@@ -91,7 +90,7 @@ OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_mem {
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/lab7-8_kit/colors.mem
-  C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/assembler-python-version/tetris.mem
+  C:/Users/ah670/Documents/ECE350/tetris/assembler-python-version/tetris.mem
 }
 read_verilog -library xil_defaultlib {
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/RAM_dual.v
@@ -105,6 +104,7 @@ read_verilog -library xil_defaultlib {
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/dffe_ref.v
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/multdiv.v
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/alu/or32.v
+  C:/Users/ah670/Documents/ECE350/tetris/main/proc/piece_rom.v
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/processor.v
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/regfile/regfile.v
   C:/Users/ah670/Documents/ECE350/tetris/main/proc/cpu_vivado/cpu_vivado.srcs/sources_1/imports/tetris/main/proc/multdiv/register32.v

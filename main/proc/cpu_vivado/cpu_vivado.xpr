@@ -189,6 +189,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../piece_rom.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PSRCDIR/sources_1/imports/tetris/main/proc/processor.v">
         <FileInfo>
           <Attr Name="ImportPath" Val="$PPRDIR/../processor.v"/>
@@ -329,10 +336,8 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/imports/tetris/assembler-python-version/tetris.mem">
+      <File Path="$PPRDIR/../../../assembler-python-version/tetris.mem">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../assembler-python-version/tetris.mem"/>
-          <Attr Name="ImportTime" Val="1776441451"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
