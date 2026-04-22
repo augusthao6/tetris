@@ -71,6 +71,7 @@ module Wrapper (
     wire io_fp_read   = (memAddr == 32'd4099);   // piece footprint ROM read
     wire io_meta_read = (memAddr == 32'd4100);   // piece metadata ROM read
     wire io_prom_write = mwe && (io_fp_read || io_meta_read); // SW to 4099 or 4100
+    wire io_hs_write  = mwe && (memAddr == 32'd4101); // high-score display write
 
     // ---- Piece footprint + metadata ROM ----
     wire [31:0] prom_footprint, prom_metadata;
@@ -132,6 +133,13 @@ module Wrapper (
             score_reg <= memDataIn;
     end
 
+    // ---- Snoop CPU writes to MMIO 4101 (high-score display) ----
+    reg [31:0] high_score_reg;
+    always @(posedge clock) begin
+        if (io_hs_write)
+            high_score_reg <= memDataIn;
+    end
+
     // ================= Program =================
     localparam INSTR_FILE = "tetris";
 
@@ -167,7 +175,7 @@ module Wrapper (
     // ================= RAM =================
     RAM_dual ProcMem(
         .clk(clock),
-        .wEn(mwe && !io_write && !io_prom_write),
+        .wEn(mwe && !io_write && !io_prom_write && !io_hs_write),
         .addr_a(memAddr[11:0]),
         .dataIn_a(memDataIn),
         .dataOut_a(memDataOut),
@@ -189,7 +197,8 @@ module Wrapper (
         .VGA_B(VGA_B),
         .fb_addr(fb_addr),
         .fb_data(fb_data),
-        .score(score_reg)
+        .score(score_reg),
+        .high_score(high_score_reg)
     );
 
 endmodule

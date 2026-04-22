@@ -13,6 +13,7 @@
 #   661      : btn_prev    (previous button state for edge detection)
 #   662      : score
 #   663      : lfsr_state  (7-bit LFSR for random piece selection, 1-127)
+#   664      : high_score  (not cleared on restart; persists across game-overs)
 #
 # Piece cells (dr, dc) by rotation — matches piece_rom.v ROM entries:
 #   I(0) rot0: (0,0)(0,1)(0,2)(0,3)   I(0) rot1: (0,0)(1,0)(2,0)(3,0)
@@ -41,6 +42,8 @@
 # MMIO piece ROM (piece_rom.v):
 #   Write {type[2:0]<<2 | rot[1:0]} to 4099 → read packed footprint
 #   Write same query to 4100 → read {floor_lim[15:8], right_lim[7:0]}
+# MMIO high score:
+#   Write score value to 4101 → updates VGA high-score display
 #
 # Calling convention:
 #   $r31 = link register (saved/restored by non-leaf callers)
@@ -87,6 +90,12 @@ init_piece:
     addi    $r2, $r0, 1
 ip_seed_ok:
     addi    $r3, $r0, 663
+    sw      $r2, 0($r3)
+
+    # Publish stored high score to VGA display (addr 664 → MMIO 4101)
+    addi    $r3, $r0, 664
+    lw      $r2, 0($r3)
+    addi    $r3, $r0, 4101
     sw      $r2, 0($r3)
 
     jal     lfsr_get_piece
@@ -648,13 +657,15 @@ vr_hit:
 # 5. If invalid, restore originals.
 ##############################################################
 rotate_piece:
-    addi    $r29, $r29, -1
-    sw      $r31, 0($r29)
+    addi    $r29, $r29, -3
+    sw      $r31, 2($r29)
 
     lw      $r10, 0($r21)
     lw      $r11, 0($r22)         # original col
     lw      $r12, 0($r25)
     lw      $r15, 0($r27)         # original rot
+    sw      $r15, 1($r29)         # preserve original rot across jal (validate_new_rotation clobbers $r15)
+    sw      $r11, 0($r29)         # preserve original col across jal (validate_new_rotation clobbers $r11)
 
     # O-piece: no rotation
     addi    $r2, $r0, 1
@@ -716,12 +727,14 @@ rp_try:
     bne     $r8, $r0, rp_invalid
     j       rp_done
 rp_invalid:
+    lw      $r15, 1($r29)
     sw      $r15, 0($r27)          # restore original rot
+    lw      $r11, 0($r29)
     sw      $r11, 0($r22)          # restore original col
 
 rp_done:
-    lw      $r31, 0($r29)
-    addi    $r29, $r29, 1
+    lw      $r31, 2($r29)
+    addi    $r29, $r29, 3
     jr      $r31
 
 ##############################################################
@@ -770,11 +783,19 @@ cl_s3:
     addi    $r3, $r3, 500
     j       cl_score_upd
 cl_s4:
-    addi    $r3, $r3, 800
+    addi    $r3, $r3, 1200
 cl_score_upd:
-    sw      $r3, 0($r2)
+    sw      $r3, 0($r2)           # store to score (addr 662)
     addi    $r2, $r0, 4097
-    sw      $r3, 0($r2)
+    sw      $r3, 0($r2)           # update LED display
+    addi    $r2, $r0, 664
+    lw      $r4, 0($r2)           # load current high_score
+    blt     $r4, $r3, cl_new_high # if high_score < score, update
+    j       cl_done
+cl_new_high:
+    sw      $r3, 0($r2)           # addr 664 = new high_score
+    addi    $r2, $r0, 4101
+    sw      $r3, 0($r2)           # update MMIO high-score display
 
 cl_done:
     lw      $r31, 0($r29)

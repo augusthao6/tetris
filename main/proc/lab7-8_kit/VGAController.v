@@ -9,8 +9,9 @@ module VGAController(
     // framebuffer read port (10×20 grid, cells 0–199)
     output [7:0]  fb_addr,
     input  [31:0] fb_data,
-    // score from CPU (raw integer, up to 9999)
-    input  [31:0] score
+    // scores from CPU (raw integer)
+    input  [31:0] score,
+    input  [31:0] high_score
 );
 
     wire clk25;
@@ -105,16 +106,29 @@ module VGAController(
     wire [11:0] board_pixel = on_grid ? 12'h333 : piece_color;
 
     // ── Score panel (x = 320..639) ───────────────────────────
-    // Display up to 4 decimal digits, centred in the right half.
-    // Each digit is drawn with a 5×7 dot-matrix font scaled ×4 (20×28 px).
-    // Digits start at y=180, x=340 (first digit).
+    // Two 5-digit displays stacked vertically:
+    //   Top:    current score  (yellow digits)
+    //   Bottom: high score     (cyan digits)
+    //
+    // Each digit: 5×7 font scaled ×4 → 20px wide × 28px tall
+    // 5 digits + 4 gaps = 5*20 + 4*4 = 116px
+    // Centred in 320px panel: start_x = 320 + (320-116)/2 = 422
 
-    // Decompose score into 4 decimal digits (capped at 9999 for display)
-    wire [13:0] score_cap = (score > 14'd9999) ? 14'd9999 : score[13:0];
-    wire [3:0] d3 = score_cap / 1000;          // thousands
-    wire [3:0] d2 = (score_cap % 1000) / 100;  // hundreds
-    wire [3:0] d1 = (score_cap % 100)  / 10;   // tens
-    wire [3:0] d0 = score_cap % 10;             // units
+    // Decompose score into 5 decimal digits (capped at 99999)
+    wire [16:0] score_cap = (score > 17'd99999) ? 17'd99999 : score[16:0];
+    wire [3:0] sd4 = score_cap / 10000;
+    wire [3:0] sd3 = (score_cap % 10000) / 1000;
+    wire [3:0] sd2 = (score_cap % 1000)  / 100;
+    wire [3:0] sd1 = (score_cap % 100)   / 10;
+    wire [3:0] sd0 = score_cap % 10;
+
+    // Decompose high_score into 5 decimal digits (capped at 99999)
+    wire [16:0] best_cap = (high_score > 17'd99999) ? 17'd99999 : high_score[16:0];
+    wire [3:0] bd4 = best_cap / 10000;
+    wire [3:0] bd3 = (best_cap % 10000) / 1000;
+    wire [3:0] bd2 = (best_cap % 1000)  / 100;
+    wire [3:0] bd1 = (best_cap % 100)   / 10;
+    wire [3:0] bd0 = best_cap % 10;
 
     // 5×7 bitmap font (35 bits per digit, rows MSB first)
     // Each row is 5 bits, packed as [34:30]=row0 .. [4:0]=row6
@@ -135,49 +149,10 @@ module VGAController(
         endcase
     endfunction
 
-    // Panel layout constants (registered for timing)
-    // 4 digits, each 20px wide (5 cols × 4), 4px gap → total 4*20+3*4 = 92px
-    // Centre in 320px panel: start_x = 320 + (320-92)/2 = 320 + 114 = 434
-    localparam DIGIT_W   = 20;   // 5 font cols × scale 4
-    localparam DIGIT_H   = 28;   // 7 font rows × scale 4
-    localparam DIGIT_GAP = 4;
-    localparam SCORE_X0  = 434;  // x of leftmost digit (in full-screen coords)
-    localparam SCORE_Y0  = 226;  // y: (480 - 28) / 2
-
-    // Compute panel pixel
-    wire in_panel = active_d && (x >= PANEL_X);
-
-    // Which digit slot? (0=thousands, 1=hundreds, 2=tens, 3=units)
-    // Precompute relative x within panel (pipeline stage handled by active_d)
-    wire [9:0] px = x;   // current pixel x (combinational OK, 1-cycle pipeline via active_d)
-    wire [8:0] py = y;
-
-    wire in_score_y = (py >= SCORE_Y0) && (py < SCORE_Y0 + DIGIT_H);
-
-    // For each digit position check if pixel hits it
-    wire [9:0] rel0 = px - SCORE_X0;
-    wire [9:0] rel1 = px - (SCORE_X0 + DIGIT_W + DIGIT_GAP);
-    wire [9:0] rel2 = px - (SCORE_X0 + 2*(DIGIT_W + DIGIT_GAP));
-    wire [9:0] rel3 = px - (SCORE_X0 + 3*(DIGIT_W + DIGIT_GAP));
-
-    wire in_d3 = (px >= SCORE_X0)                             && (px < SCORE_X0 + DIGIT_W);
-    wire in_d2 = (px >= SCORE_X0 +   DIGIT_W + DIGIT_GAP)    && (px < SCORE_X0 + 2*DIGIT_W +   DIGIT_GAP);
-    wire in_d1 = (px >= SCORE_X0 + 2*DIGIT_W + 2*DIGIT_GAP)  && (px < SCORE_X0 + 3*DIGIT_W + 2*DIGIT_GAP);
-    wire in_d0 = (px >= SCORE_X0 + 3*DIGIT_W + 3*DIGIT_GAP)  && (px < SCORE_X0 + 4*DIGIT_W + 3*DIGIT_GAP);
-
-    // font_col (0–4) and font_row (0–6) within the digit
-    wire [2:0] fc3 = rel0[4:2];   // rel / 4
-    wire [2:0] fc2 = rel1[4:2];
-    wire [2:0] fc1 = rel2[4:2];
-    wire [2:0] fc0 = rel3[4:2];
-    wire [2:0] font_row = (py - SCORE_Y0) >> 2;  // (py - SCORE_Y0) / 4
-
     function font_bit;
         input [34:0] bmp;
         input [2:0]  row;
         input [2:0]  col;
-        // row 0 = bits [34:30], row 6 = bits [4:0]
-        // within each row, col 0 = MSB (bit 4)
         reg [4:0] rowbits;
         begin
             case (row)
@@ -194,25 +169,107 @@ module VGAController(
         end
     endfunction
 
-    wire bit3 = font_bit(digit_bitmap(d3), font_row, fc3);
-    wire bit2 = font_bit(digit_bitmap(d2), font_row, fc2);
-    wire bit1 = font_bit(digit_bitmap(d1), font_row, fc1);
-    wire bit0 = font_bit(digit_bitmap(d0), font_row, fc0);
+    // ── Layout constants ──────────────────────────────────────
+    localparam DIGIT_W   = 20;   // 5 font cols × scale 4
+    localparam DIGIT_H   = 28;   // 7 font rows × scale 4
+    localparam DIGIT_GAP = 4;
+    // 5 digits: total span = 5*DIGIT_W + 4*DIGIT_GAP = 116px
+    // Centered in 320px panel: 320 + (320-116)/2 = 422
+    localparam SCORE_X0  = 422;
+    localparam SCORE_Y0  = 130;  // score digits y-start
+    localparam BEST_X0   = 422;
+    localparam BEST_Y0   = 310;  // high-score digits y-start
+
+    wire [9:0] px = x;
+    wire [8:0] py = y;
+
+    // ── Score digit hit-tests ─────────────────────────────────
+    wire [9:0] sr4 = px - SCORE_X0;
+    wire [9:0] sr3 = px - (SCORE_X0 +   (DIGIT_W + DIGIT_GAP));
+    wire [9:0] sr2 = px - (SCORE_X0 + 2*(DIGIT_W + DIGIT_GAP));
+    wire [9:0] sr1 = px - (SCORE_X0 + 3*(DIGIT_W + DIGIT_GAP));
+    wire [9:0] sr0 = px - (SCORE_X0 + 4*(DIGIT_W + DIGIT_GAP));
+
+    wire s_in4 = (px >= SCORE_X0)                              && (px < SCORE_X0 +   DIGIT_W);
+    wire s_in3 = (px >= SCORE_X0 +   (DIGIT_W+DIGIT_GAP))     && (px < SCORE_X0 + 2*DIGIT_W +   DIGIT_GAP);
+    wire s_in2 = (px >= SCORE_X0 + 2*(DIGIT_W+DIGIT_GAP))     && (px < SCORE_X0 + 3*DIGIT_W + 2*DIGIT_GAP);
+    wire s_in1 = (px >= SCORE_X0 + 3*(DIGIT_W+DIGIT_GAP))     && (px < SCORE_X0 + 4*DIGIT_W + 3*DIGIT_GAP);
+    wire s_in0 = (px >= SCORE_X0 + 4*(DIGIT_W+DIGIT_GAP))     && (px < SCORE_X0 + 5*DIGIT_W + 4*DIGIT_GAP);
+
+    wire [2:0] sfc4 = sr4[4:2];
+    wire [2:0] sfc3 = sr3[4:2];
+    wire [2:0] sfc2 = sr2[4:2];
+    wire [2:0] sfc1 = sr1[4:2];
+    wire [2:0] sfc0 = sr0[4:2];
+
+    wire in_score_y = (py >= SCORE_Y0) && (py < SCORE_Y0 + DIGIT_H);
+    wire [2:0] sfrow = (py - SCORE_Y0) >> 2;
+
+    wire sbit4 = font_bit(digit_bitmap(sd4), sfrow, sfc4);
+    wire sbit3 = font_bit(digit_bitmap(sd3), sfrow, sfc3);
+    wire sbit2 = font_bit(digit_bitmap(sd2), sfrow, sfc2);
+    wire sbit1 = font_bit(digit_bitmap(sd1), sfrow, sfc1);
+    wire sbit0 = font_bit(digit_bitmap(sd0), sfrow, sfc0);
 
     wire score_dot = in_score_y && (
-        (in_d3 && bit3) ||
-        (in_d2 && bit2) ||
-        (in_d1 && bit1) ||
-        (in_d0 && bit0)
+        (s_in4 && sbit4) ||
+        (s_in3 && sbit3) ||
+        (s_in2 && sbit2) ||
+        (s_in1 && sbit1) ||
+        (s_in0 && sbit0)
     );
 
-    // "SCORE" label: simple horizontal bar at y=190 (just above digits)
     wire score_label_bar = (py >= SCORE_Y0 - 10) && (py < SCORE_Y0 - 6)
-                        && (px >= SCORE_X0) && (px < SCORE_X0 + 4*DIGIT_W + 3*DIGIT_GAP);
+                        && (px >= SCORE_X0) && (px < SCORE_X0 + 5*DIGIT_W + 4*DIGIT_GAP);
 
-    wire [11:0] panel_pixel = score_dot    ? 12'hFF0 :   // digits — yellow
-                              score_label_bar ? 12'hAAA : // label line — gray
-                              12'h112;                    // panel background — dark blue
+    // ── High-score digit hit-tests ────────────────────────────
+    wire [9:0] br4 = px - BEST_X0;
+    wire [9:0] br3 = px - (BEST_X0 +   (DIGIT_W + DIGIT_GAP));
+    wire [9:0] br2 = px - (BEST_X0 + 2*(DIGIT_W + DIGIT_GAP));
+    wire [9:0] br1 = px - (BEST_X0 + 3*(DIGIT_W + DIGIT_GAP));
+    wire [9:0] br0 = px - (BEST_X0 + 4*(DIGIT_W + DIGIT_GAP));
+
+    wire b_in4 = (px >= BEST_X0)                              && (px < BEST_X0 +   DIGIT_W);
+    wire b_in3 = (px >= BEST_X0 +   (DIGIT_W+DIGIT_GAP))     && (px < BEST_X0 + 2*DIGIT_W +   DIGIT_GAP);
+    wire b_in2 = (px >= BEST_X0 + 2*(DIGIT_W+DIGIT_GAP))     && (px < BEST_X0 + 3*DIGIT_W + 2*DIGIT_GAP);
+    wire b_in1 = (px >= BEST_X0 + 3*(DIGIT_W+DIGIT_GAP))     && (px < BEST_X0 + 4*DIGIT_W + 3*DIGIT_GAP);
+    wire b_in0 = (px >= BEST_X0 + 4*(DIGIT_W+DIGIT_GAP))     && (px < BEST_X0 + 5*DIGIT_W + 4*DIGIT_GAP);
+
+    wire [2:0] bfc4 = br4[4:2];
+    wire [2:0] bfc3 = br3[4:2];
+    wire [2:0] bfc2 = br2[4:2];
+    wire [2:0] bfc1 = br1[4:2];
+    wire [2:0] bfc0 = br0[4:2];
+
+    wire in_best_y = (py >= BEST_Y0) && (py < BEST_Y0 + DIGIT_H);
+    wire [2:0] bfrow = (py - BEST_Y0) >> 2;
+
+    wire bbit4 = font_bit(digit_bitmap(bd4), bfrow, bfc4);
+    wire bbit3 = font_bit(digit_bitmap(bd3), bfrow, bfc3);
+    wire bbit2 = font_bit(digit_bitmap(bd2), bfrow, bfc2);
+    wire bbit1 = font_bit(digit_bitmap(bd1), bfrow, bfc1);
+    wire bbit0 = font_bit(digit_bitmap(bd0), bfrow, bfc0);
+
+    wire best_dot = in_best_y && (
+        (b_in4 && bbit4) ||
+        (b_in3 && bbit3) ||
+        (b_in2 && bbit2) ||
+        (b_in1 && bbit1) ||
+        (b_in0 && bbit0)
+    );
+
+    wire best_label_bar = (py >= BEST_Y0 - 10) && (py < BEST_Y0 - 6)
+                       && (px >= BEST_X0) && (px < BEST_X0 + 5*DIGIT_W + 4*DIGIT_GAP);
+
+    // ── Panel pixel mux ───────────────────────────────────────
+    wire in_panel = active_d && (x >= PANEL_X);
+
+    wire [11:0] panel_pixel =
+        score_dot       ? 12'hFF0 :   // score digits     — yellow
+        best_dot        ? 12'h0FF :   // high-score digits — cyan
+        score_label_bar ? 12'hAAA :   // score label line  — gray
+        best_label_bar  ? 12'h777 :   // best label line   — darker gray
+                          12'h112;    // panel background  — dark blue
 
     // Divider line between board and panel
     wire divider = active_d && (x == PANEL_X || x == PANEL_X + 1);
