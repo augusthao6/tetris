@@ -16,3 +16,4 @@ sw,I,00111
 lw,I,01000
 setx,JI,10101
 bex,JI,10110
+lfsr,R,01000
